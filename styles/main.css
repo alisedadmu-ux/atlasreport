@@ -1,1 +1,5 @@
+/* app/assets/css/main.css (or wherever your global CSS lives) */
 @import "tailwindcss";
+
+/* Tailwind v4 automatically scans all your files in the project folder, */
+/* so you don't need to specify content paths anymore! */
