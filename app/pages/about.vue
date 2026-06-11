@@ -1,70 +1,54 @@
 <template>
-  <div class="content-area">
-    <div class="about-container">
-      <div class="about-image-box">
-        <img src="https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?auto=format&fit=crop&w=1000&q=80" alt="Newsroom Processing Unit">
+  <div class="bg-[#f4f4f2] min-h-screen text-slate-950 font-sans p-4 md:p-10 transition-all duration-300">
+    <div class="max-w-5xl mx-auto bg-white border border-slate-200/80 shadow-[0_50px_120px_rgba(0,0,0,0.04)] rounded-3xl p-8 md:p-16 space-y-16">
+      
+      <div class="space-y-4 border-b border-slate-100 pb-10">
+        <span class="text-[10px] font-black text-red-600 uppercase tracking-[0.3em] bg-red-50 px-3 py-1 rounded-full border border-red-100">
+          Institutional Profile
+        </span>
+        <h1 class="text-4xl md:text-7xl font-serif font-black tracking-tight text-slate-950 leading-[0.95] pt-2">
+          The Atlas Manifesto.
+        </h1>
+        <p class="text-xs font-mono text-slate-400 uppercase tracking-widest pt-1">Revision Map // Node-2026.Alpha</p>
       </div>
-      <div class="about-content">
-        <h2>Our Story</h2>
-        <h1>Who We Are</h1>
-        <div class="about-text">
-          <p><strong>Atlas Report</strong> serves as an independent journalistic foundation providing deep-dive analytics, global corporate monitoring, and immediate investigative dispatches. Mirroring the mythological strength of Atlas, we safely anchor the weight of modern breaking realities for millions of critical thinkers globally.</p>
-          <p>Established to combat superficial reporting matrices, our cross-border teams deliver data-tested reporting that directly influences strategic insights, regulatory stances, and public interest frameworks. We maintain high standards of neutrality, verify each point with precision, and operate independent of localized institutional influences.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
+        <div class="md:col-span-4 space-y-4 border-l-2 border-red-600 pl-6">
+          <p class="text-xs font-black uppercase tracking-wider text-slate-400">Core Mission Objective</p>
+          <h3 class="text-xl font-serif font-black leading-tight text-slate-950">
+            Processing chaotic global telemetry variables into clean, high-fidelity media dispatches.
+          </h3>
+        </div>
+        
+        <div class="md:col-span-8 font-serif text-slate-800 text-lg md:text-xl leading-relaxed space-y-6 font-light">
+          <p class="font-bold text-slate-950">
+            Atlas Intelligence is an independent publishing terminal operating at the structural intersection of modern logistics tracking, technical market evaluation, and deep ground-truth reporting.
+          </p>
+          <p>
+            Traditional public media agencies often remain burdened by slow editorial cycles and dense advertising ecosystems. The Atlas protocol removes structural clutter completely, routing pure data arrays instantly into high-contrast user interfaces designed for immediate analytical reading.
+          </p>
         </div>
       </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-10 border-t border-slate-100">
+        <div class="p-6 bg-slate-50/60 rounded-2xl border border-slate-200/40 hover:bg-white hover:shadow-xl transition-all duration-300">
+          <p class="text-3xl font-sans font-black text-slate-950">100%</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-1">Unaffiliated</p>
+        </div>
+        <div class="p-6 bg-slate-50/60 rounded-2xl border border-slate-200/40 hover:bg-white hover:shadow-xl transition-all duration-300">
+          <p class="text-3xl font-sans font-black text-slate-950">2026</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-1">Synchronized</p>
+        </div>
+        <div class="p-6 bg-slate-50/60 rounded-2xl border border-slate-200/40 hover:bg-white hover:shadow-xl transition-all duration-300">
+          <p class="text-3xl font-sans font-black text-slate-950">Real</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-1">Verified News</p>
+        </div>
+        <div class="p-6 bg-slate-50/60 rounded-2xl border border-slate-200/40 hover:bg-white hover:shadow-xl transition-all duration-300">
+          <p class="text-3xl font-sans font-black text-slate-950">Secure</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-1">Node Delivery</p>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
-
-<style scoped>
-.content-area {
-  padding: 60px 5%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.about-container {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 50px;
-  align-items: start;
-}
-.about-image-box {
-  background-color: #e9ecef;
-  border: 1px solid #dddddd;
-  border-radius: 6px;
-  height: 450px;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-}
-.about-image-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.about-content h2 {
-  font-size: 1.2rem;
-  color: #cc0000;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
-}
-.about-content h1 {
-  font-size: 2.5rem;
-  color: #0f2c59;
-  margin-bottom: 20px;
-  line-height: 1.2;
-}
-.about-text p {
-  margin-bottom: 20px;
-  color: #444444;
-  font-size: 1.05rem;
-}
-@media (max-width: 768px) {
-  .about-container {
-    grid-template-columns: 1fr;
-  }
-  .about-image-box {
-    height: 300px;
-  }
-}
-</style>

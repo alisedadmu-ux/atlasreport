@@ -1,61 +1,79 @@
 <template>
-  <div class="bg-[#fcfbfc] min-h-screen py-16">
-    <div class="max-w-3xl mx-auto px-6">
-      
-      <NuxtLink to="/" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-red-600 hover:text-red-700 transition-colors mb-8 group">
-        <span class="transform group-hover:-translate-x-1 transition-transform">←</span> Return to Newsroom
-      </NuxtLink>
+  <div v-if="article" class="bg-[#fafaf9] min-h-screen pb-20 selection:bg-red-100">
+    <div class="fixed top-20 left-0 w-full h-1 bg-slate-200 z-50">
+      <div class="bg-red-600 h-full w-1/3"></div>
+    </div>
 
-      <article v-if="article">
-        <header class="mb-8 border-b border-gray-200 pb-8">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="text-xs font-extrabold text-red-600 uppercase tracking-widest">{{ article.category || 'Exclusive' }}</span>
-            <span class="text-gray-300">|</span>
-            <span class="text-xs text-gray-500 font-medium">Published: June 11, 2026</span>
-          </div>
-          <h1 class="text-3xl md:text-5xl font-serif font-black text-[#0f2c59] leading-tight mb-4 tracking-tight">
-            {{ article.title }}
-          </h1>
-          <div class="flex items-center gap-3 mt-6">
-            <div class="w-8 h-8 rounded-full bg-[#0f2c59] text-white flex items-center justify-center text-xs font-bold">AN</div>
-            <p class="text-xs text-gray-600 font-semibold">By <span class="text-gray-900">Atlas Newsroom Editorial Desk</span></p>
-          </div>
-        </header>
-
-        <div v-if="article.image" class="mb-10 overflow-hidden rounded-xl shadow-sm border border-gray-100 max-h-[460px]">
-          <img :src="article.image" alt="Editorial asset" class="w-full h-full object-cover" />
+    <header class="pt-12 pb-12 border-b border-slate-200 bg-white">
+      <div class="max-w-4xl mx-auto px-6">
+        <div class="flex items-center gap-4 mb-8">
+          <span class="px-3 py-1 bg-slate-950 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-sm">
+            {{ article.category }}
+          </span>
+          <span class="text-slate-400 text-xs font-bold tracking-widest uppercase">{{ article.date }}</span>
         </div>
         
-        <div class="prose prose-lg max-w-none text-gray-800 font-serif leading-relaxed space-y-6">
-          <p class="text-xl font-sans font-normal text-gray-900 border-l-4 border-[#0f2c59] pl-5 italic leading-normal bg-gray-50/50 py-4 pr-4 rounded-r">
-            {{ article.lead }}
-          </p>
+        <h1 class="text-4xl md:text-6xl font-serif font-black text-slate-950 leading-[1.05] tracking-tight mb-8">
+          {{ article.title }}
+        </h1>
 
-          <p v-for="(paragraph, index) in article.paragraphs" :key="index" class="text-lg font-light tracking-wide text-gray-800">
-            {{ paragraph }}
-          </p>
-        </div>
-      </article>
-      
-      <div v-else class="text-center py-20 bg-white rounded-xl border border-gray-100 shadow-sm">
-        <h2 class="text-2xl font-bold text-[#0f2c59] mb-2">Briefing Unavailable</h2>
-        <p class="text-gray-500 text-sm mb-6">The requested document file could not be found.</p>
-        <NuxtLink to="/" class="inline-block bg-[#0f2c59] text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-opacity-90 transition-opacity">
-          Go Back Home
-        </NuxtLink>
+        <p class="text-xl md:text-2xl font-serif font-bold text-slate-700 leading-relaxed italic border-l-8 border-red-600 pl-6">
+          {{ article.lead }}
+        </p>
+      </div>
+    </header>
+
+    <div class="max-w-4xl mx-auto px-6 mt-12">
+      <div class="rounded-3xl overflow-hidden shadow-2xl border border-slate-200 mb-16">
+        <img :src="article.image" class="w-full object-cover max-h-[500px]" />
       </div>
 
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <aside class="lg:col-span-3 space-y-8 border-t lg:border-t-0 pt-8 lg:pt-0">
+          <div class="space-y-1">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reporting Desk</p>
+            <p class="text-sm font-bold text-slate-900">Atlas Intelligence Unit</p>
+          </div>
+          <div class="space-y-1">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transmission</p>
+            <p class="text-sm font-bold text-slate-900">Encrypted Satellite Node 04</p>
+          </div>
+          <div class="pt-6 border-t border-slate-200">
+            <button class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 text-[10px] font-black uppercase tracking-widest transition-colors rounded-lg">
+              Download PDF Report
+            </button>
+          </div>
+        </aside>
+
+        <main class="lg:col-span-9">
+          <div class="bg-slate-900 text-slate-100 p-8 rounded-2xl mb-12 shadow-xl">
+            <h3 class="text-amber-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Executive Briefing</h3>
+            <p class="text-lg font-serif leading-relaxed opacity-90">{{ article.summary }}</p>
+          </div>
+
+          <div class="prose prose-slate max-w-none space-y-8">
+            <p v-for="(paragraph, index) in article.paragraphs" :key="index" 
+               class="text-slate-800 font-serif text-lg md:text-xl leading-[1.8] font-light">
+              {{ paragraph }}
+            </p>
+          </div>
+
+          <div class="mt-20 pt-10 border-t border-slate-200 flex justify-between items-center">
+            <NuxtLink to="/" class="text-xs font-black uppercase tracking-widest text-red-600 hover:text-slate-950 transition-colors">
+              ← Return to Dashboard
+            </NuxtLink>
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Verification ID: {{ route.params.id }}-2026-X</p>
+          </div>
+        </main>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router'
-import { computed } from 'vue'
 import { articlesDatabase } from '~/data/articles.js'
 
 const route = useRoute()
-const articleId = route.params.id
-
-const article = computed(() => articlesDatabase[articleId])
+const article = articlesDatabase[route.params.id]
 </script>

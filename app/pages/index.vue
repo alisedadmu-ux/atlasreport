@@ -1,131 +1,117 @@
 <template>
-  <div class="bg-[#f8fafc] min-h-screen text-slate-900 font-sans antialiased p-4 md:p-8 selection:bg-red-100">
-    <div class="max-w-7xl mx-auto bg-white rounded-3xl shadow-[0_30px_80px_rgba(15,23,42,0.04)] border border-slate-200 overflow-hidden">
+  <div class="bg-[#fcfaf7] min-h-screen text-slate-950 font-sans p-2 sm:p-4 md:p-6 lg:p-8 transition-all duration-300">
+    <div class="max-w-[1750px] mx-auto bg-white border border-slate-200 sm:border-2 sm:border-slate-950 shadow-xl sm:shadow-[0_30px_90px_rgba(154,23,23,0.08)] rounded-2xl sm:rounded-3xl overflow-hidden">
       
-      <div class="bg-[#0f172a] text-amber-400 px-6 py-4 text-xs font-black tracking-[0.25em] uppercase flex justify-between items-center border-b border-slate-800">
-        <div class="flex items-center gap-3">
-          <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
-          <span class="text-white font-extrabold">ATLAS TELEMETRY //</span> BROADCASTING LIVE NEWSROOM STREAM
+      <div class="bg-slate-950 text-white px-4 sm:px-8 py-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 border-b border-slate-900">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          </span>
+          <p class="text-[10px] sm:text-xs font-black tracking-[0.25em] uppercase text-slate-100 truncate">
+            ATLAS MONITOR // <span class="text-red-500">LIVE WIRE READY</span>
+          </p>
         </div>
-        <div class="hidden lg:flex items-center gap-6 text-slate-400 font-bold tracking-normal text-xs">
-          <span>🛡️ EU INFRASTRUCTURE CYBER SECURITY MODE: ACTIVE</span>
-          <span>⚽ NORTH AMERICAN WORLD CUP TERMINALS: ONLINE</span>
+        
+        <div class="w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5 sm:py-0 border-t border-slate-800 sm:border-0 pt-1.5 sm:pt-0">
+          <div class="text-[9px] font-mono tracking-widest text-slate-400 uppercase whitespace-nowrap flex gap-4">
+            <span>[NODES INDEXED: {{ Object.keys(articlesDatabase).length }}]</span>
+            <span class="sm:hidden text-red-500">• SWIPE FOR ACTIVE STREAMS •</span>
+            <span class="hidden sm:inline">SYS_STATUS: ACTIVE</span>
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
+      <div class="bg-gradient-to-br from-red-800 via-red-600 to-amber-600 p-5 sm:p-8 md:p-12 border-b sm:border-b-2 border-slate-950 text-white space-y-4 sm:space-y-6">
+        <div class="max-w-4xl space-y-2">
+          <span class="inline-block text-[9px] font-black tracking-[0.25em] uppercase bg-black/25 px-2.5 py-1 rounded">
+            INTEL DECRYPTION GRID
+          </span>
+          <h2 class="text-2xl sm:text-3xl md:text-5xl font-serif font-black tracking-tight leading-[1.1]">
+            Query the Active 2026 Core Stream.
+          </h2>
+        </div>
         
-        <div v-if="mainStory" class="lg:col-span-5 p-6 md:p-10 flex flex-col justify-between group cursor-pointer bg-white">
-          <div class="space-y-6">
-            <div class="relative overflow-hidden rounded-2xl shadow-md border border-slate-200 aspect-[16/10] bg-slate-900">
-              <img 
-                :src="mainStory.image" 
-                :alt="mainStory.title" 
-                class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700 ease-out" 
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent"></div>
-            </div>
-            
-            <div class="space-y-4">
-              <div class="flex items-center gap-3">
-                <span class="px-2.5 py-0.5 bg-red-600 text-white font-black tracking-widest uppercase text-[10px] rounded">CRITICAL DISPATCH</span>
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">{{ mainStory.category }}</span>
-              </div>
-              
-              <NuxtLink :to="`/news/cyber-crisis`" class="block">
-                <h1 class="text-2xl md:text-4xl font-serif font-black tracking-tight text-slate-950 leading-[1.15] group-hover:text-red-600 transition-colors">
-                  {{ mainStory.title }}
-                </h1>
-              </NuxtLink>
-              
-              <p class="text-slate-900 font-serif text-base md:text-lg font-bold leading-relaxed pt-1">
-                {{ mainStory.lead }}
-              </p>
-              
-              <p class="text-slate-700 font-serif text-sm md:text-base leading-relaxed bg-slate-50 p-4 rounded-xl border-l-4 border-slate-900">
-                {{ mainStory.summary }}
-              </p>
+        <div class="max-w-3xl relative group">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm sm:text-base">
+            ⚡
+          </div>
+          <input 
+            v-model="searchQuery"
+            type="text" 
+            placeholder="Filter titles, topics, sports, networks..." 
+            class="w-full bg-white text-slate-950 font-medium pl-9 sm:pl-11 pr-12 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl border border-slate-300 sm:border-2 sm:border-slate-950 shadow-sm sm:shadow-[4px_4px_0px_#000] focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/20 text-sm sm:text-base font-serif transition-all"
+          />
+          <button 
+            v-if="searchQuery" 
+            @click="searchQuery = ''"
+            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[10px] font-black text-slate-400 hover:text-red-600 uppercase tracking-widest"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
 
-              <div class="space-y-3 pt-2">
-                <p v-for="(p, i) in mainStory.paragraphs" :key="i" class="text-slate-600 font-serif text-sm leading-relaxed">
-                  {{ p }}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="pt-8 mt-8 border-t border-slate-100">
-            <NuxtLink :to="`/news/cyber-crisis`" class="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-950 hover:text-red-600 transition-colors group/btn">
-              <span>View Full Network Mapping Report</span>
-              <span class="transform group-hover/btn:translate-x-1.5 transition-transform">→</span>
-            </NuxtLink>
-          </div>
+      <div v-if="filteredArticlesList.length === 0" class="p-12 sm:p-20 text-center space-y-4 bg-slate-50/50">
+        <span class="text-3xl sm:text-4xl block">📭</span>
+        <h3 class="text-lg sm:text-xl font-serif font-black text-slate-950">No Active Feeds Match</h3>
+        <p class="text-xs text-slate-500 font-mono max-w-sm mx-auto leading-relaxed">
+          The query matrix parameter [ "{{ searchQuery }}" ] did not correspond to any encrypted partitions in our active registry database.
+        </p>
+        <button @click="searchQuery = ''" class="mt-2 px-4 py-2.5 bg-slate-950 text-white font-black text-[10px] uppercase tracking-widest rounded-lg shadow-sm">
+          Reset Telemetry Feed
+        </button>
+      </div>
+
+      <div v-else class="p-4 sm:p-6 md:p-8 lg:p-10 bg-[#fafaf9]">
+        <div class="flex items-center gap-2 mb-6 sm:mb-8 border-b border-slate-200 pb-3 sm:pb-4">
+          <span class="text-[9px] font-black tracking-widest uppercase bg-slate-950 text-white px-2 py-1 rounded-sm">
+            INDEXED MANIFEST
+          </span>
+          <span class="text-xs font-mono text-slate-400">{{ filteredArticlesList.length }} Entries Loaded</span>
         </div>
 
-        <div class="lg:col-span-4 p-6 md:p-8 bg-slate-50/60 space-y-8">
-          <div class="flex items-center justify-between border-b-2 border-slate-950 pb-3">
-            <h2 class="text-xs font-black tracking-[0.2em] text-slate-900 uppercase flex items-center gap-2">
-              <span>⚽</span> SPORTS & LIVE TELEMETRY
-            </h2>
-            <span class="text-[9px] font-black bg-red-600 text-white px-2 py-0.5 rounded uppercase tracking-wider animate-pulse">Live</span>
-          </div>
-
-          <div class="space-y-10">
-            <article v-for="(article, id) in sportsArticles" :key="id" class="group space-y-4">
-              <div class="overflow-hidden rounded-xl shadow-sm aspect-video border border-slate-200 bg-slate-200">
-                <img :src="article.image" class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500 ease-out" />
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <article 
+            v-for="article in filteredArticlesList" 
+            :key="article.id" 
+            class="bg-white border border-slate-200 sm:border-2 sm:border-slate-950 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm sm:shadow-[4px_4px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_rgba(185,28,28,1)] sm:hover:shadow-[8px_8px_0px_rgba(185,28,28,1)] transition-all duration-300 transform sm:hover:-translate-y-1 flex flex-col justify-between group"
+          >
+            <div class="space-y-3 sm:space-y-4">
+              <div class="aspect-[16/10] overflow-hidden border-b border-slate-200 sm:border-b-2 sm:border-slate-950 bg-slate-900 relative">
+                <img :src="article.image" :alt="article.title" class="w-full h-full object-cover grayscale-[15%] group-hover:grayscale-0 group-hover:scale-102 transition-all duration-700 ease-out" loading="lazy" />
+                <span class="absolute top-3 left-3 bg-slate-950/90 backdrop-blur-sm text-white font-black text-[8px] sm:text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm border border-slate-800">
+                  {{ article.category }}
+                </span>
               </div>
-              <div class="space-y-3">
-                <span class="text-[9px] font-black text-red-600 uppercase tracking-widest block">World Feed Transmission</span>
-                <NuxtLink :to="`/news/${id}`" class="block">
-                  <h3 class="text-lg md:text-xl font-serif font-black text-slate-950 group-hover:text-red-600 transition-colors leading-snug tracking-tight">
+
+              <div class="p-4 sm:p-6 space-y-2 sm:space-y-3">
+                <p class="text-[9px] sm:text-[10px] font-mono text-slate-400 uppercase tracking-wider">{{ article.date }}</p>
+                
+                <NuxtLink :to="`/news/${article.id}`" class="block group-hover:text-red-700 transition-colors">
+                  <h3 class="text-base sm:text-lg md:text-xl font-serif font-black text-slate-950 group-hover:text-red-700 leading-tight tracking-tight">
                     {{ article.title }}
                   </h3>
                 </NuxtLink>
-                <p class="text-slate-900 font-serif text-xs font-bold leading-relaxed">{{ article.lead }}</p>
-                <p class="text-slate-600 font-serif text-xs leading-relaxed line-clamp-4 bg-white p-3 rounded-lg border border-slate-200/60 shadow-inner">{{ article.summary }}</p>
-                <p class="text-slate-500 font-serif text-[11px] leading-relaxed hidden md:block">{{ article.paragraphs[0] }}</p>
-              </div>
-            </article>
-          </div>
-        </div>
-
-        <div class="lg:col-span-3 p-6 md:p-8 space-y-6 bg-white">
-          <div class="border-b border-slate-900 pb-3">
-            <h2 class="text-xs font-black tracking-[0.2em] text-slate-900 uppercase flex items-center gap-2">
-              <span>🔥</span> HIGH-VELOCITY RECENT NEWS
-            </h2>
-          </div>
-
-          <div class="divide-y divide-slate-200">
-            <div v-for="(article, id, index) in marketArticles" :key="id" class="group py-6 first:pt-0 last:pb-0">
-              <div class="flex items-baseline gap-4">
-                <span class="text-3xl font-sans font-black text-slate-200 group-hover:text-amber-500 transition-colors duration-300">
-                  0{{ index + 1 }}
-                </span>
-                <div class="space-y-2">
-                  <span class="text-[9px] font-black text-amber-700 uppercase tracking-widest block">Intelligence Vector</span>
-                  <NuxtLink :to="`/news/${id}`" class="block font-serif font-bold text-base text-slate-950 group-hover:text-red-600 transition-colors leading-snug tracking-tight">
-                    {{ article.title }}
-                  </NuxtLink>
-                  <p class="text-slate-900 font-serif text-xs leading-snug font-medium line-clamp-2">{{ article.lead }}</p>
-                  <p class="text-slate-500 font-serif text-[11px] leading-normal line-clamp-3 bg-slate-50 p-2.5 rounded-lg border border-slate-100">{{ article.summary }}</p>
-                </div>
+                
+                <p class="text-xs font-serif font-bold text-slate-800 leading-relaxed line-clamp-2 sm:line-clamp-3">
+                  {{ article.lead }}
+                </p>
+                <p class="text-xs font-serif text-slate-500 font-light leading-relaxed line-clamp-3 sm:line-clamp-4 italic pt-1 border-t border-slate-50">
+                  {{ article.summary }}
+                </p>
               </div>
             </div>
-          </div>
 
-          <div class="bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-slate-100 p-5 rounded-2xl border border-slate-800 shadow-xl mt-6">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-              <h4 class="text-[9px] font-black text-amber-400 tracking-[0.25em] uppercase">Algorithmic Node Log</h4>
+            <div class="p-4 sm:p-6 pt-0 border-t border-slate-100 mt-2 flex justify-between items-center">
+              <NuxtLink :to="`/news/${article.id}`" class="text-[10px] font-black uppercase tracking-widest text-slate-950 group-hover:text-red-600 transition-colors py-1.5 flex items-center gap-1.5">
+                <span>Examine Full Report</span>
+                <span class="inline-block transform group-hover:translate-x-0.5 transition-transform">→</span>
+              </NuxtLink>
+              <span class="text-[9px] font-mono text-slate-300 hidden sm:inline">REG:{{ article.id.substring(0,4).toUpperCase() }}</span>
             </div>
-            <p class="text-[11px] text-slate-400 font-light leading-relaxed">
-              Global intelligence pipelines successfully populated. Content data streaming vectors initialized cleanly with continuous live background sync rules.
-            </p>
-          </div>
+          </article>
         </div>
-
       </div>
 
     </div>
@@ -133,21 +119,27 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { articlesDatabase } from '~/data/articles.js'
 
-// Target specific real-world data mappings
-const mainStory = computed(() => articlesDatabase['cyber-crisis'])
+const searchQuery = ref('')
 
-const sportsArticles = computed(() => {
-  return Object.fromEntries(
-    Object.entries(articlesDatabase).filter(([_, art]) => art.category === 'sports')
-  )
-})
+const filteredArticlesList = computed(() => {
+  const query = searchQuery.value.toLowerCase().trim()
+  const items = Object.entries(articlesDatabase).map(([key, value]) => ({
+    id: key,
+    ...value
+  }))
 
-const marketArticles = computed(() => {
-  return Object.fromEntries(
-    Object.entries(articlesDatabase).filter(([_, art]) => art.category === 'markets')
-  )
+  if (!query) return items
+
+  return items.filter(art => {
+    return (
+      art.title.toLowerCase().includes(query) ||
+      art.category.toLowerCase().includes(query) ||
+      art.lead.toLowerCase().includes(query) ||
+      art.summary.toLowerCase().includes(query)
+    )
+  })
 })
 </script>

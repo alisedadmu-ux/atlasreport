@@ -1,79 +1,97 @@
 export const articlesDatabase = {
   // ==========================================
-  // GLOBAL TECH & INFRASTRUCTURE BREAKING
+  // CENTRAL GLOBAL DISPATCH
   // ==========================================
   'cyber-crisis': {
-    title: 'EU Activates Global Emergency Response Protocol After Massive Cyber Attacks Strike Rail and Maritime Networks.',
+    title: 'EU Activates Joint Cybersecurity Reserve After Sophisticated Infrastructure Exploits Disrupt Maritime and Rail Logistics Hubs.',
     category: 'politics',
+    date: 'June 11, 2026',
     image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80',
-    lead: 'BRUSSELS — Over 5,000 security experts have been urgently deployed to manage systemic failures across European transport corridors following an unprecedented, coordinated offensive against maritime logistics hubs and critical rail routing frameworks.',
-    summary: 'A massive hybrid warfare demonstration has simultaneously compromised ticketing grids, automated track switches, and shipping manifest platforms across multiple nations, forcing a full test-activation of the newly formed 2025 EU Cyber Blueprint network.',
+    lead: 'BRUSSELS — European digital infrastructure commands have formally initialized active operational defense frameworks under the Civil Solidarity Act following systemic, synchronized anomalies across key freight networks.',
+    summary: 'A massive wave of distributed architectural anomalies has targeted automation matrices, port container scheduling mainframes, and ticketing databases across critical trade routes, forcing an unprecedented live deployment of elite cross-border intervention teams.',
     paragraphs: [
-      'The offensive struck with highly synchronized precision during peak transit hours, blinding port scheduling software in major trade lanes and causing substantial container backlogs that engineers estimate could take days to resolve. Executive Vice-President for Tech Sovereignty Henna Virkkunen issued an urgent directive warning that civilian transit corridors have officially transformed into frontline targets for state-backed threat actors.',
-      'In response, defense agencies have successfully engaged the newly established Cybersecurity Reserve under the provisions of the Civil Solidarity Act. This marks the first live deployment of joint international intervention teams tasked with isolating malicious network code from air-gapped infrastructure systems before operations are dangerously compromised.'
+      'The multi-vector incident unfolded over peak operational transit hours, temporarily interrupting electronic validation nodes inside major shipping terminals and creating localized backlogs that logistics analytics networks estimate will require multi-day mitigation efforts to clear. Executive Vice-President for Tech Sovereignty Henna Virkkunen verified that threat groups targeted communication relays rather than attempting data extraction.',
+      'Under the newly unified 2026 European Cyber Blueprint directives, incident response modules successfully deployed air-gapped forensic snapshots to isolate compromise factors. While core transport networks have stabilized, administrative segments remain under continuous protective scanning to guarantee operational continuity.'
     ]
   },
 
   // ==========================================
-  // SPORTS DESK (LIVE WORLD CUP COVERAGE)
+  // EXTRA DEPTH SPORTS DESK
   // ==========================================
   'world-cup-kickoff': {
-    title: 'World Cup 2026 Debuts in Mexico City Amid Multi-Nation Tech Deployment and Autonomous Security Systems.',
+    title: 'FIFA World Cup 2026 Launches Joint Logistics Hubs Across 16 Host Cities to Manage Record Premium Travel Demands.',
     category: 'sports',
+    date: 'June 11, 2026',
     image: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80',
-    lead: 'MEXICO CITY — The highly anticipated 48-team tournament has officially launched under strict security protocols at the Estadio Azteca, introducing a massive shift in how global sporting venues manage multi-million fan attendance dynamics.',
-    summary: 'With Canada, Mexico, and the United States sharing joint hosting privileges across sixteen distinct cities, logistics teams have integrated autonomous robot surveillance dogs and automated 3D tracking sensors inside the International Broadcast Centres.',
+    lead: 'MEXICO CITY — The largest 48-team global tournament in football history has successfully kicked off across North America, introducing an extensive integration of tracking arrays and premium fan lounge expansions.',
+    summary: 'A joint airline supply configuration has successfully scaled capacity by adding over 27,000 seasonal seats across 12 primary transit routes, distributing 1.45 million luxury travel allocations across Canada, Mexico, and the United States.',
     paragraphs: [
-      'Opening match festivities were closely monitored by state-of-the-art biological security teams deploying advanced large-scale disinfection hardware to combat volatile global pathogens. Demographic data reports indicate record-breaking international viewer engagement, with a staggering 83 percent of Gen Z sports consumers actively streaming surrounding match content across Europe and North America.',
-      'On the pitch, match-ball telemetry sensors are streaming real-time spatial positioning metrics directly into broadcast suites, completely automating complex offside decisions. This high-octane engineering approach sets a new historical benchmark for global tournament management frameworks.'
+      'Opening ceremonies inside the legendary Estadio Azteca matched unprecedented global viewership targets, with multi-platform streaming networks recording heavy engagement across European and Asian markets. Match venue technical coordinators have completed deployment of spatial tracking ball-telemetry matrices, mapping coordinate feeds instantly to automated officiating rooms.',
+      'To manage the massive influx of international supporters, transit operators have finalized dedicated gate infrastructure pipelines and custom entertainment spaces inside primary airline terminals, setting a historic benchmark for large-scale sporting tournament logistics.'
     ]
   },
-  'transfer-market': {
-    title: 'Continental Leagues Ready Primary Emergency Portfolios as Summer Transfer Windows Open Under Strict Financial Regulations.',
+  'f1-engine-rules': {
+    title: 'Formula 1 Formally Approves Major 2027-2028 Engine Framework Adjustments to Maximize Combustion Output.',
     category: 'sports',
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80',
-    lead: 'MANCHESTER — Front-office negotiation desks have formally activated primary allocation reserves as summer registration portals go live across elite club divisions globally.',
-    summary: 'Stricter payroll sustainability rules are heavily influencing executive strategy, forcing top-tier teams to balance premium multi-year player acquisitions against newly imposed economic spending caps.',
+    date: 'June 10, 2026',
+    image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=800&q=80',
+    lead: 'LONDON — Formula 1 governance assemblies have ratified immediate structural updates to upcoming power unit designs, deviating slightly from the initially slated 50-50 hybrid power split.',
+    summary: 'In an effort to safeguard competitive performance dynamics, regulatory teams confirmed that internal combustion output allocation metrics will expand to a 58/42 split for the 2027 season, shifting to a 60/40 configuration by 2028.',
     paragraphs: [
-      'Several elite clubs are actively restructuring asset packages to avoid structural point deductions before the late-summer close window. Internal scouting systems indicate high demand for creative mid-tier utility prospects who fit compressed payroll boundaries.',
-      'Agents report that early negotiation phases are taking significantly longer due to strict performance-bonus validation procedures required by regulatory offices, causing an unprecedented logjam for top-tier global forwards.'
+      'The sudden shift response comes after thorough digital wind-tunnel modeling cycles revealed potential power depletion hurdles on high-speed straightaways under the early 2026 performance maps. Engineering leads across elite constructor teams have expressed strong support for the rule alterations, stating the updated allocation grid gives development divisions significantly more flexibility.',
+      'While the structural reliance on advanced electrical kinetic energy recovery apparatus remains central to the sport’s sustainability pledges, the increased internal combustion thresholds will ensure engines sound and perform at maximum velocity.'
+    ]
+  },
+  'wimbledon-prep': {
+    title: 'Wimbledon Refurbishes Legendary Grass Surfaces with Adaptive Root Sensors Ahead of Opening Match Matches.',
+    category: 'sports',
+    date: 'June 11, 2026',
+    image: 'https://images.unsplash.com/photo-1622279457486-62dce4a44526?auto=format&fit=crop&w=800&q=80',
+    lead: 'WIMBLEDON — All-England Club groundskeepers have finalized the installation of subsurface soil telemetry matrices designed to track moisture levels in real time.',
+    summary: 'The technical integration aims to completely neutralize slick surface conditions during high-humidity play cycles, ensuring optimal traction indicators for elite international base-liners.',
+    paragraphs: [
+      'Engineers stated that the integrated sensor paths measure real-time baseline compaction characteristics to guide macro-irrigation schedules precisely. Tournament officials expect this development to drastically decrease early-round slipping incidents on the grass.',
+      'In addition, stadium seating zones have been updated with localized thermal dispersal arrays, providing a high-comfort atmospheric experience for premium ticket boxes even under full sun exposure.'
     ]
   },
 
   // ==========================================
-  // POPULAR & TRENDING TECH BUSINESS BRIEFS
+  // TECHNOLOGY & MARKET MACRO
   // ==========================================
-  'apple-safety-overhaul': {
-    title: 'Apple deploys strict new content filtration boundaries across global user ecosystems to block graphic media.',
+  'agentic-ai-shift': {
+    title: 'Corporate Boards Mandate Strict ROI Audits as Agentic AI Systems Take Command of Enterprise Workflows.',
     category: 'markets',
-    image: 'https://images.unsplash.com/photo-1563206767-5b18f218e8de?auto=format&fit=crop&w=800&q=80',
-    lead: 'CUPERTINO — Software architecture leads have unveiled advanced communication filters designed to intercept and blur graphic visual data across core messaging platforms dynamically.',
-    summary: 'The operating system update expands underlying behavioral machine models directly on consumer devices, allowing real-time interception of unauthorized file transmissions without compromising user privacy layers.',
+    date: 'June 11, 2026',
+    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+    lead: 'NEW YORK — Finance directors have initiated exhaustive structural evaluations on generative software systems, demanding clear evidence of structural growth over basic efficiency metrics.',
+    summary: 'The technology narrative of 2026 has officially shifted from simple content generation into autonomous agentic systems capable of orchestrating entire supply chain logistics loops independent of manual human intervention.',
     paragraphs: [
-      'The upgraded framework completely revamps built-in digital boundary utilities, offering parents precise insight into application velocity metrics with a single automated interface panel step.',
-      'Privacy engineers note that all mathematical processing maps occur directly via local silicon processors, ensuring telemetry data points are never uploaded to centralized storage networks.'
+      'This algorithmic transformation is heavily impacting white-collar talent acquisition patterns, causing a visible shift in hiring architectures as regular corporate tasks are reassigned to sovereign AI stacks. Executive boards are rapidly adjusting workforce models to match this highly responsive, automated operational landscape.',
+      'Legal teams are concurrently scrambling to build robust oversight protocols to map accountability loops, as autonomous software agents now regularly execute multi-million dollar supply negotiations across global networks.'
     ]
   },
-  'nvidia-hardware-rally': {
-    title: 'Nvidia processing units spark massive hardware investment wave across regional computing complexes.',
+  'fed-rate-stance': {
+    title: 'Federal Reserve Stabilizes Benchmark Interest Margins, Signaling Restrained Economic Liquidity Through Q3.',
     category: 'markets',
-    image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=800&q=80',
-    lead: 'TOKYO — Microchip equipment supply layers have experienced massive valuation spikes as enterprise tech networks look to secure high-performance framework assets.',
-    summary: 'Global foundry hubs have successfully balanced production yields, allowing complex component hardware systems to ship to international logistics facilities ahead of quarterly schedules.',
+    date: 'June 10, 2026',
+    image: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=800&q=80',
+    lead: 'WASHINGTON — Central bank governors voted unanimously to maintain current baseline interest evaluations, emphasizing strong labor matrices and sticky services data panels.',
+    summary: 'The tactical freeze indicates that institutional lending environments will remain tightly bounded until inflation vectors definitively align with centralized macro-economic targets.',
     paragraphs: [
-      'Market research suggests that cloud computing infrastructure providers are locking down secondary multi-year allocation blocks to ensure their machine learning clusters remain fully operational.',
-      'The surge has introduced heavy volume tracking on electronic components, sending core resource values to multi-season record highs during early morning trading exchanges.'
+      'Market indices showed moderate volatility following the announcement, with technology equipment manufacturing capital shifting into short-duration debt securities. Economists predict that borrowing parameters will remain flat until late summer analysis reports clear.',
+      'Corporate treasury teams have adapted to the extended plateau by restructuring multi-year debt offerings, locking down operational capital buffers to buffer against variable macro headwinds.'
     ]
   },
-  'commercial-real-estate': {
-    title: 'Metropolitan property values establish clear baseline support following institutional capital infusions.',
+  'space-station-extension': {
+    title: 'International Consortium Finalizes Capital Injection to Extend Space Station Logistics Infrastructure Through 2030.',
     category: 'markets',
-    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-    lead: 'NEW YORK — Commercial building networks are experiencing renewed stability trends as investment funds re-allocate substantial long-term holdings into urban developments.',
-    summary: 'Declining economic uncertainty parameters have pushed major real estate investment trusts to resume capital infrastructure execution strategies across prominent metro areas.',
+    date: 'June 11, 2026',
+    image: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=800&q=80',
+    lead: 'HOUSTON — Space exploration agencies have ratified an emergency funding treaty to guarantee orbital environmental platform safety standards over the next four years.',
+    summary: 'The financial allocation guarantees continuous operations for microgravity research facilities, supporting advanced pharmaceuticals and commercial material fabrication developments.',
     paragraphs: [
-      'Development blueprints are being actively re-engineered to facilitate mixed-use corporate incubators and localized high-density cloud hosting configurations inside legacy business structures.',
-      'Analyst desks confirm that lease execution rates surpassed primary baseline models by roughly eleven percent, signaling robust recovery trends within major commercial business centers.'
+      'Structural review audits confirmed that structural hull integrity profiles remain within safe tolerances, provided main airlock seal valves undergo scheduled component refurbishments next winter.',
+      'Private orbital transit operators have hailed the extension framework as a massive win for commercial market confidence, ensuring a steady stream of cargo delivery contracts through the decade.'
     ]
   }
 }

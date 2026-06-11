@@ -1,144 +1,53 @@
 <template>
-  <div class="content-area">
-    <div class="contact-container">
-      <div class="contact-form-side">
-        <form @submit.prevent="handleSubmit">
-          <div class="form-group">
-            <label for="form-name">Name</label>
-            <input type="text" id="form-name" required>
+  <div class="bg-[#f5f5f3] min-h-screen text-slate-950 font-sans p-4 md:p-10">
+    <div class="max-w-4xl mx-auto bg-white border border-slate-200/60 shadow-[0_50px_100px_rgba(0,0,0,0.04)] rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12">
+      
+      <div class="md:col-span-5 bg-slate-950 text-white p-8 md:p-12 flex flex-col justify-between space-y-12">
+        <div class="space-y-4">
+          <span class="text-[9px] font-black text-amber-400 tracking-[0.3em] uppercase">Secure Comms</span>
+          <h2 class="text-3xl font-serif font-black tracking-tight leading-tight">Establish Contact Line</h2>
+          <p class="text-xs text-slate-400 font-serif font-light leading-relaxed">
+            Direct cryptographic transmission portals are open for editorial submissions, press alerts, and general technical inquiries.
+          </p>
+        </div>
+
+        <div class="space-y-4 font-mono text-[10px] text-slate-500">
+          <div>
+            <p class="text-slate-400 uppercase font-bold tracking-wider">SECURE BROADCAST EMAIL</p>
+            <p class="text-white text-xs pt-0.5">terminal@atlas.report</p>
           </div>
-          <div class="form-group">
-            <label for="form-email">Email</label>
-            <input type="email" id="form-email" required>
+          <div>
+            <p class="text-slate-400 uppercase font-bold tracking-wider">SIGNAL NODE ID</p>
+            <p class="text-white text-xs pt-0.5">@atlas.intel.secure</p>
           </div>
-          <div class="form-group">
-            <label for="form-message">Message</label>
-            <textarea id="form-message" rows="6" required></textarea>
+        </div>
+      </div>
+
+      <div class="md:col-span-7 p-8 md:p-12 space-y-6 bg-white">
+        <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Transmission Form</h3>
+        
+        <form @submit.prevent class="space-y-4">
+          <div class="space-y-1">
+            <label class="text-[10px] font-black uppercase tracking-wider text-slate-700">Identity / Organization</label>
+            <input type="text" placeholder="Anonymous Entity or Name" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs focus:outline-none focus:border-slate-950 font-serif" />
           </div>
-          <button type="submit" class="btn-submit">Submit</button>
+          
+          <div class="space-y-1">
+            <label class="text-[10px] font-black uppercase tracking-wider text-slate-700">Return Routing Address</label>
+            <input type="email" placeholder="secure-routing@domain.com" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs focus:outline-none focus:border-slate-950 font-serif" />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-black uppercase tracking-wider text-slate-700">Intelligence Payload / Message</label>
+            <textarea rows="4" placeholder="Input full comprehensive statement or descriptive event briefing data parameters..." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs focus:outline-none focus:border-slate-950 font-serif resize-none"></textarea>
+          </div>
+
+          <button class="w-full bg-slate-950 hover:bg-red-700 text-white font-black text-[10px] uppercase tracking-widest py-3 rounded-lg transition-colors shadow-md">
+            Deploy Secure Transmission
+          </button>
         </form>
       </div>
 
-      <div class="contact-info-side">
-        <div class="info-item">
-          <div class="info-icon">&#9993;</div>
-          <div class="info-details">
-            <h4>Email Address</h4>
-            <p>desk@atlasreport.com</p>
-          </div>
-        </div>
-
-        <div class="info-item">
-          <div class="info-icon">&#128222;</div>
-          <div class="info-details">
-            <h4>Phone Number</h4>
-            <p>+1 (555) 839-2041</p>
-          </div>
-        </div>
-
-        <div class="info-item">
-          <div class="info-icon">&#128205;</div>
-          <div class="info-details">
-            <h4>Physical Address</h4>
-            <p>750 Editorial Row, Sector 4, New York, NY 10001</p>
-          </div>
-        </div>
-
-        <div class="map-box">
-          Map
-        </div>
-      </div>
     </div>
   </div>
 </template>
-
-<script setup>
-const handleSubmit = () => {
-  alert('Submission processing executed.')
-}
-</script>
-
-<style scoped>
-.content-area {
-  padding: 60px 5%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.contact-container {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 50px;
-}
-.form-group {
-  margin-bottom: 25px;
-}
-.form-group label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #222222;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-}
-.form-group input, .form-group textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #222222;
-  border-radius: 2px;
-  font-size: 1rem;
-  outline: none;
-}
-.btn-submit {
-  background-color: #dddddd;
-  color: #222222;
-  padding: 10px 35px;
-  text-decoration: none;
-  font-weight: bold;
-  border: 1px solid #222222;
-  border-radius: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.btn-submit:hover {
-  background-color: #cccccc;
-}
-.info-item {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 30px;
-}
-.info-icon {
-  font-size: 1.6rem;
-  margin-right: 15px;
-  color: #222222;
-  width: 30px;
-  text-align: center;
-}
-.info-details h4 {
-  color: #222222;
-  font-size: 1.1rem;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  font-weight: bold;
-}
-.info-details p {
-  color: #666666;
-}
-.map-box {
-  border: 1px solid #222222;
-  height: 250px;
-  background-color: #e3e3e3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-top: 20px;
-}
-@media (max-width: 768px) {
-  .contact-container {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
