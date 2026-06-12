@@ -1,10 +1,15 @@
-// nuxt.config.ts
-export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
-  devtools: { enabled: true },
+import tailwindcss from '@tailwindcss/vite'
 
-  modules: [
-    '@nuxtjs/tailwindcss',
-    'nuxt-vercel-analytics'
-  ]
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  // This line forces Nuxt to load your Tailwind styles on every page layout
+  css: [
+    '~/app.css'
+  ],
+  vite: {
+    plugins: [
+      tailwindcss()
+    ]
+  },
+  compatibilityDate: '2026-06-12'
 })

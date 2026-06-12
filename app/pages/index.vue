@@ -1,145 +1,352 @@
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { categoriesData } from '../data/articles.js'
+
+// Selection, Filter, & UI Animation States
+const activeCategory = ref(categoriesData[0].id)
+const selectedTopic = ref(null)
+const searchQuery = ref('')
+const isLoading = ref(false)
+const liveClock = ref('SYNCING_WITH_ATOMIC_CLOCK...')
+let clockInterval = null
+
+// Computed property to watch current active category
+const currentCategoryData = computed(() => {
+  return categoriesData.find(c => c.id === activeCategory.value)
+})
+
+// Filtered topics based on search input query
+const filteredTopics = computed(() => {
+  if (!currentCategoryData.value) return []
+  return currentCategoryData.value.topics.filter(topic => 
+    topic.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+
+// LEVEL UP: Immersive Skeleton Loader Switch on Switch Category
+const handleCategoryChange = (catId) => {
+  isLoading.value = true
+  activeCategory.value = catId
+  selectedTopic.value = null
+  searchQuery.value = ''
+  
+  // Shimmer placeholder effect lasts for 400ms to mimic real network speeds
+  setTimeout(() => {
+    isLoading.value = false
+  }, 400)
+}
+
+// LEVEL UP: Advanced Intelligent Headline Image Encoder Engine
+const getTopicImage = (categoryId, topicId, topicName) => {
+  if (!topicName) return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80'
+  
+  // Encodes the actual headline text so Unsplash searches for matching photographic contexts
+  const dynamicKeyword = encodeURIComponent(topicName.toLowerCase().replace(/[^a-z0-9 ]/g, ''))
+  return `https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80&sig=${topicId}&q=${dynamicKeyword}`
+}
+
+// LEVEL UP: Export Brief Utility
+const copyDossierJSON = () => {
+  if (!selectedTopic.value) return
+  navigator.clipboard.writeText(JSON.stringify(selectedTopic.value, null, 2))
+  alert('SUCCESS: Dossier compiled and copied to clipboard as structured JSON telemetry.')
+}
+
+const formatIndex = (idx) => {
+  const num = idx + 1
+  return num < 10 ? '0' + num : num
+}
+
+const handleKeyDown = (e) => {
+  if (e.key === 'Escape') {
+    selectedTopic.value = null
+    searchQuery.value = ''
+  }
+}
+
+// LEVEL UP: Atomic Operation Clock Runtime Setup
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+  clockInterval = setInterval(() => {
+    const now = new Date()
+    liveClock.value = now.toUTCString().replace('GMT', 'UTC')
+  }, 1000)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+  if (clockInterval) clearInterval(clockInterval)
+})
+</script>
+
 <template>
-  <div class="bg-[#fcfaf7] min-h-screen text-slate-950 font-sans p-2 sm:p-4 md:p-6 lg:p-8 transition-all duration-300">
-    <div class="max-w-[1750px] mx-auto bg-white border border-slate-200 sm:border-2 sm:border-slate-950 shadow-xl sm:shadow-[0_30px_90px_rgba(154,23,23,0.08)] rounded-2xl sm:rounded-3xl overflow-hidden">
+  <main class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased py-6 px-4 sm:px-6 select-none">
+    <div class="max-w-7xl mx-auto space-y-6">
       
-      <div class="bg-slate-950 text-white px-4 sm:px-8 py-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 border-b border-slate-900">
-        <div class="flex items-center gap-3 w-full sm:w-auto">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-          </span>
-          <p class="text-[10px] sm:text-xs font-black tracking-[0.25em] uppercase text-slate-100 truncate">
-            ATLAS MONITOR // <span class="text-red-500">LIVE WIRE READY</span>
-          </p>
+      <div class="w-full bg-black/60 border border-slate-900 h-9 rounded-xl overflow-hidden flex items-center px-4 backdrop-blur-sm text-[10px] font-mono tracking-wider">
+        <span class="text-violet-400 font-bold shrink-0 flex items-center gap-1.5 mr-4 border-r border-slate-800 pr-4">
+          <span class="w-1 h-1 rounded-full bg-violet-400 animate-ping"></span>
+          ATLAS_STREAM
+        </span>
+        <div class="animate-marquee whitespace-nowrap text-slate-500 space-x-8">
+          <span>[NODE_01]: QUANTUM CORE EFFICIENCY +14.2%</span>
+          <span>[NODE_04]: ORBITAL INFRASTRUCTURE SYNCHRONIZED</span>
+          <span>[NODE_07]: CYBER DEFENSE APPARATUS AT 100% THREAT MITIGATION</span>
+          <span>[NODE_09]: ECO-TECH MYCELIAL NETWORKS EXPANDING</span>
         </div>
+      </div>
+
+      <div class="relative bg-gradient-to-r from-slate-900 via-purple-950/10 to-black border border-slate-800/80 rounded-2xl p-8 overflow-hidden shadow-2xl">
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-violet-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-fuchsia-600/10 rounded-full blur-3xl pointer-events-none"></div>
         
-        <div class="w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5 sm:py-0 border-t border-slate-800 sm:border-0 pt-1.5 sm:pt-0">
-          <div class="text-[9px] font-mono tracking-widest text-slate-400 uppercase whitespace-nowrap flex gap-4">
-            <span>[NODES INDEXED: {{ Object.keys(articlesDatabase).length }}]</span>
-            <span class="sm:hidden text-red-500">• SWIPE FOR ACTIVE STREAMS •</span>
-            <span class="hidden sm:inline">SYS_STATUS: ACTIVE</span>
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+              <span class="text-[10px] font-mono text-red-400 uppercase tracking-widest font-black">CRITICAL BRIEFING LINK DETECTED</span>
+            </div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+              Atlas Global <span class="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">News Intelligence</span>
+            </h1>
+            <p class="text-sm text-slate-400 mt-1.5 max-w-2xl">Explore encrypted global sector trends. Use the search matrix or hit <kbd class="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[10px]">ESC</kbd> to wipe active terminal parameters.</p>
           </div>
         </div>
       </div>
 
-      <div class="bg-gradient-to-br from-red-800 via-red-600 to-amber-600 p-5 sm:p-8 md:p-12 border-b sm:border-b-2 border-slate-950 text-white space-y-4 sm:space-y-6">
-        <div class="max-w-4xl space-y-2">
-          <span class="inline-block text-[9px] font-black tracking-[0.25em] uppercase bg-black/25 px-2.5 py-1 rounded">
-            INTEL DECRYPTION GRID
-          </span>
-          <h2 class="text-2xl sm:text-3xl md:text-5xl font-serif font-black tracking-tight leading-[1.1]">
-            Query the Active 2026 Core Stream.
-          </h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-slate-900/20 border border-slate-900 p-4 rounded-xl flex flex-col justify-between h-20">
+          <span class="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Active Database Nodes</span>
+          <span class="text-xl font-bold text-slate-200">50 Frameworks</span>
         </div>
+        <div class="bg-slate-900/20 border border-slate-900 p-4 rounded-xl flex flex-col justify-between h-20">
+          <span class="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Selected Classification</span>
+          <span class="text-xl font-bold text-violet-400 uppercase tracking-tight truncate">{{ currentCategoryData?.name.split(' ')[0] }}</span>
+        </div>
+        <div class="bg-slate-900/20 border border-slate-900 p-4 rounded-xl flex flex-col justify-between h-20">
+          <span class="text-[9px] font-mono text-slate-500 uppercase tracking-widest">Feed Status</span>
+          <span class="text-xl font-bold text-emerald-400 flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE_STREAM
+          </span>
+        </div>
+        <div class="bg-slate-900/20 border border-slate-900 p-4 rounded-xl flex flex-col justify-between h-20">
+          <span class="text-[9px] font-mono text-slate-500 uppercase tracking-widest">System Timestamp Synchronization</span>
+          <span class="text-[11px] font-mono text-slate-300 font-bold uppercase truncate tracking-wide text-violet-400">{{ liveClock }}</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        <div class="max-w-3xl relative group">
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm sm:text-base">
-            ⚡
+        <div class="lg:col-span-4 space-y-4">
+          
+          <div class="bg-slate-900/30 border border-slate-900 rounded-2xl p-4 backdrop-blur-sm">
+            <div class="relative">
+              <input 
+                v-model="searchQuery"
+                type="text" 
+                placeholder="Type parameter keyword to query..." 
+                class="w-full bg-black/40 border border-slate-800/80 rounded-xl px-4 py-2.5 pl-10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all font-mono"
+              />
+              <span class="absolute left-3.5 top-3 text-slate-500 text-xs select-none pointer-events-none font-mono">⌕</span>
+              <button 
+                v-if="searchQuery" 
+                @click="searchQuery = ''" 
+                class="absolute right-3.5 top-2.5 text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded font-mono transition-colors"
+              >
+                WIPE
+              </button>
+            </div>
           </div>
-          <input 
-            v-model="searchQuery"
-            type="text" 
-            placeholder="Filter titles, topics, sports, networks..." 
-            class="w-full bg-white text-slate-950 font-medium pl-9 sm:pl-11 pr-12 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl border border-slate-300 sm:border-2 sm:border-slate-950 shadow-sm sm:shadow-[4px_4px_0px_#000] focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/20 text-sm sm:text-base font-serif transition-all"
-          />
-          <button 
-            v-if="searchQuery" 
-            @click="searchQuery = ''"
-            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[10px] font-black text-slate-400 hover:text-red-600 uppercase tracking-widest"
-          >
-            Clear
-          </button>
-        </div>
-      </div>
 
-      <div v-if="filteredArticlesList.length === 0" class="p-12 sm:p-20 text-center space-y-4 bg-slate-50/50">
-        <span class="text-3xl sm:text-4xl block">📭</span>
-        <h3 class="text-lg sm:text-xl font-serif font-black text-slate-950">No Active Feeds Match</h3>
-        <p class="text-xs text-slate-500 font-mono max-w-sm mx-auto leading-relaxed">
-          The query matrix parameter [ "{{ searchQuery }}" ] did not correspond to any encrypted partitions in our active registry database.
-        </p>
-        <button @click="searchQuery = ''" class="mt-2 px-4 py-2.5 bg-slate-950 text-white font-black text-[10px] uppercase tracking-widest rounded-lg shadow-sm">
-          Reset Telemetry Feed
-        </button>
-      </div>
-
-      <div v-else class="p-4 sm:p-6 md:p-8 lg:p-10 bg-[#fafaf9]">
-        <div class="flex items-center gap-2 mb-6 sm:mb-8 border-b border-slate-200 pb-3 sm:pb-4">
-          <span class="text-[9px] font-black tracking-widest uppercase bg-slate-950 text-white px-2 py-1 rounded-sm">
-            INDEXED MANIFEST
-          </span>
-          <span class="text-xs font-mono text-slate-400">{{ filteredArticlesList.length }} Entries Loaded</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <article 
-            v-for="article in filteredArticlesList" 
-            :key="article.id" 
-            class="bg-white border border-slate-200 sm:border-2 sm:border-slate-950 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm sm:shadow-[4px_4px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_rgba(185,28,28,1)] sm:hover:shadow-[8px_8px_0px_rgba(185,28,28,1)] transition-all duration-300 transform sm:hover:-translate-y-1 flex flex-col justify-between group"
-          >
-            <div class="space-y-3 sm:space-y-4">
-              <div class="aspect-[16/10] overflow-hidden border-b border-slate-200 sm:border-b-2 sm:border-slate-950 bg-slate-900 relative">
-                <img :src="article.image" :alt="article.title" class="w-full h-full object-cover grayscale-[15%] group-hover:grayscale-0 group-hover:scale-102 transition-all duration-700 ease-out" loading="lazy" />
-                <span class="absolute top-3 left-3 bg-slate-950/90 backdrop-blur-sm text-white font-black text-[8px] sm:text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm border border-slate-800">
-                  {{ article.category }}
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 backdrop-blur-sm space-y-1">
+            <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase px-3 mb-3 font-mono">// Classification Sectors</p>
+            
+            <button 
+              v-for="(cat, idx) in categoriesData" 
+              :key="cat.id"
+              @click="handleCategoryChange(cat.id)"
+              class="w-full px-4 py-3 text-sm font-medium text-left rounded-xl transition-all duration-200 flex items-center justify-between group border border-transparent"
+              :class="activeCategory === cat.id 
+                ? 'bg-gradient-to-r from-slate-900 to-slate-800 border-slate-700/50 text-white shadow-xl shadow-black/40' 
+                : 'text-slate-400 hover:bg-slate-900/50 hover:text-white'"
+            >
+              <div class="flex items-center gap-3 overflow-hidden">
+                <span class="font-mono text-xs text-slate-600 group-hover:text-slate-400" :class="{ 'text-violet-400 font-bold': activeCategory === cat.id }">
+                  [{{ formatIndex(idx) }}]
                 </span>
+                <span class="truncate tracking-wide">{{ cat.name }}</span>
               </div>
-
-              <div class="p-4 sm:p-6 space-y-2 sm:space-y-3">
-                <p class="text-[9px] sm:text-[10px] font-mono text-slate-400 uppercase tracking-wider">{{ article.date }}</p>
-                
-                <NuxtLink :to="`/news/${article.id}`" class="block group-hover:text-red-700 transition-colors">
-                  <h3 class="text-base sm:text-lg md:text-xl font-serif font-black text-slate-950 group-hover:text-red-700 leading-tight tracking-tight">
-                    {{ article.title }}
-                  </h3>
-                </NuxtLink>
-                
-                <p class="text-xs font-serif font-bold text-slate-800 leading-relaxed line-clamp-2 sm:line-clamp-3">
-                  {{ article.lead }}
-                </p>
-                <p class="text-xs font-serif text-slate-500 font-light leading-relaxed line-clamp-3 sm:line-clamp-4 italic pt-1 border-t border-slate-50">
-                  {{ article.summary }}
-                </p>
-              </div>
-            </div>
-
-            <div class="p-4 sm:p-6 pt-0 border-t border-slate-100 mt-2 flex justify-between items-center">
-              <NuxtLink :to="`/news/${article.id}`" class="text-[10px] font-black uppercase tracking-widest text-slate-950 group-hover:text-red-600 transition-colors py-1.5 flex items-center gap-1.5">
-                <span>Examine Full Report</span>
-                <span class="inline-block transform group-hover:translate-x-0.5 transition-transform">→</span>
-              </NuxtLink>
-              <span class="text-[9px] font-mono text-slate-300 hidden sm:inline">REG:{{ article.id.substring(0,4).toUpperCase() }}</span>
-            </div>
-          </article>
+              <span 
+                class="w-1.5 h-1.5 rounded-full transition-all duration-200"
+                :class="activeCategory === cat.id ? 'bg-violet-400 ring-4 ring-violet-500/20' : 'bg-slate-800 group-hover:bg-slate-600'"
+              ></span>
+            </button>
+          </div>
         </div>
+
+        <div class="lg:col-span-8 space-y-8">
+          
+          <div class="space-y-4">
+            <h2 class="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest">// Streaming Sector News Feeds</h2>
+            
+            <div v-if="isLoading" class="space-y-3">
+              <div v-for="n in 3" :key="n" class="h-24 bg-slate-900/30 border border-slate-900/60 rounded-xl animate-pulse flex items-center p-4 gap-4">
+                <div class="w-28 h-full bg-slate-800/50 rounded-lg"></div>
+                <div class="flex-grow space-y-2">
+                  <div class="h-3 w-1/4 bg-slate-800/60 rounded"></div>
+                  <div class="h-4 w-3/4 bg-slate-800/40 rounded"></div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else-if="filteredTopics.length > 0" class="grid grid-cols-1 gap-3">
+              <div
+                v-for="(topic, idx) in filteredTopics"
+                :key="topic.id"
+                @click="selectedTopic = selectedTopic?.id === topic.id ? null : topic"
+                class="border rounded-xl bg-slate-900/20 overflow-hidden transition-all duration-300 flex flex-col sm:flex-row cursor-pointer group border-slate-900 hover:border-slate-700 hover:bg-slate-900/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-950/5"
+                :class="{ 'border-violet-500 bg-violet-950/10 ring-1 ring-violet-500/20 shadow-xl shadow-black/30': selectedTopic?.id === topic.id }"
+              >
+                <div class="sm:w-36 h-28 sm:h-auto relative overflow-hidden shrink-0 bg-slate-950">
+                  <img 
+                    :src="getTopicImage(activeCategory, topic.id, topic.name)" 
+                    alt="Contextual graphic node illustration headline image tool frame"
+                    class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105 opacity-50 group-hover:opacity-80 mix-blend-screen"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-slate-950/50"></div>
+                </div>
+
+                <div class="p-4 flex flex-col justify-center flex-grow">
+                  <div class="flex items-center justify-between gap-2 mb-1">
+                    <div class="flex items-center gap-2">
+                      <span v-if="idx === 0 && !searchQuery" class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-red-400 font-extrabold animate-pulse">BREAKING</span>
+                      <span class="text-[9px] font-mono tracking-wider text-slate-500 uppercase">
+                        ID_//{{ topic.id.substring(0, 6).toUpperCase() }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] font-mono text-slate-500">
+                      <span>• {{ 2 + (idx % 3) }}m read</span>
+                      <span class="text-violet-400 font-semibold uppercase tracking-wider">
+                        {{ selectedTopic?.id === topic.id ? 'Spliced' : 'Inspect' }}
+                      </span>
+                    </div>
+                  </div>
+                  <h3 class="text-sm font-bold text-slate-300 group-hover:text-white transition-colors" :class="{ 'text-white': selectedTopic?.id === topic.id }">
+                    {{ topic.name }}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="py-12 text-center border border-dashed border-slate-900 rounded-xl bg-slate-950/40">
+              <span class="text-slate-600 block text-lg font-mono">∅</span>
+              <p class="text-xs font-mono text-slate-500 mt-1 uppercase tracking-wider">No matching pipeline files discovered</p>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/40 border border-slate-900 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300">
+            
+            <div class="border-b border-slate-900 bg-slate-950/50 px-6 py-4 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full" :class="selectedTopic ? 'bg-emerald-400 animate-pulse' : 'bg-slate-700'"></div>
+                <span class="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest">Active Report Dossier</span>
+              </div>
+              
+              <button 
+                v-if="selectedTopic"
+                @click="copyDossierJSON"
+                class="text-[9px] font-mono text-violet-400 hover:text-white bg-violet-950/40 hover:bg-violet-900/50 border border-violet-900/50 px-2 py-1 rounded transition-colors"
+              >
+                EXPORT_DATA_JSON
+              </button>
+            </div>
+
+            <div>
+              <div v-if="selectedTopic">
+                
+                <div class="relative h-44 w-full overflow-hidden bg-slate-950 border-b border-slate-900">
+                  <img 
+                    :src="getTopicImage(activeCategory, selectedTopic.id, selectedTopic.name)" 
+                    alt="Contextual display visual background" 
+                    class="w-full h-full object-cover opacity-30 blur-[1px] scale-105 mix-blend-luminosity"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+                  
+                  <div class="absolute bottom-5 left-6 right-6">
+                    <div class="flex items-center gap-2 mb-1.5">
+                      <span class="text-[9px] font-mono px-2 py-0.5 bg-violet-500/10 border border-violet-500/30 text-violet-300 rounded font-bold uppercase tracking-wider">
+                        {{ currentCategoryData.name }}
+                      </span>
+                      <span class="text-[9px] font-mono text-slate-400">
+                        REF_//{{ selectedTopic.id.substring(0, 8).toUpperCase() }}
+                      </span>
+                    </div>
+                    <h2 class="text-xl font-black text-white tracking-wide leading-tight">{{ selectedTopic.name }}</h2>
+                  </div>
+                </div>
+
+                <div class="p-6 space-y-2 font-mono text-xs max-h-[460px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div 
+                    v-for="(line, idx) in selectedTopic.info.split('\n')" 
+                    :key="idx"
+                    class="bg-black/20 border border-slate-900/50 p-3.5 rounded-xl flex items-start gap-4 hover:border-slate-800/80 hover:bg-slate-900/20 transition-all duration-150 group"
+                  >
+                    <span class="text-[10px] text-slate-600 group-hover:text-violet-400 font-bold select-none text-right w-5 shrink-0 pt-0.5 transition-colors">
+                      {{ formatIndex(idx) }}
+                    </span>
+                    
+                    <span class="text-slate-300 font-sans text-sm leading-relaxed tracking-normal">
+                      {{ line.substring(line.indexOf(':') + 1).trim() }}
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+
+              <div v-else class="py-24 text-center p-6">
+                <div class="w-12 h-12 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-center mx-auto mb-4 shadow-xl text-slate-500">
+                  📁
+                </div>
+                <p class="text-xs font-mono text-slate-400 uppercase tracking-widest">Awaiting Dossier Selection</p>
+                <p class="text-xs text-slate-600 mt-1.5 max-w-sm mx-auto font-sans leading-relaxed">
+                  Select a live stream article block inside the news feed layout row above to extract raw telemetry nodes and construct the analysis matrix.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
 
     </div>
-  </div>
+  </main>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue'
-import { articlesDatabase } from '~/data/articles.js'
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 99px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
 
-const searchQuery = ref('')
-
-const filteredArticlesList = computed(() => {
-  const query = searchQuery.value.toLowerCase().trim()
-  const items = Object.entries(articlesDatabase).map(([key, value]) => ({
-    id: key,
-    ...value
-  }))
-
-  if (!query) return items
-
-  return items.filter(art => {
-    return (
-      art.title.toLowerCase().includes(query) ||
-      art.category.toLowerCase().includes(query) ||
-      art.lead.toLowerCase().includes(query) ||
-      art.summary.toLowerCase().includes(query)
-    )
-  })
-})
-</script>
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+</style>
