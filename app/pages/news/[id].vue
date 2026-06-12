@@ -1,6 +1,6 @@
 <script setup>
 import { useRoute } from 'vue-router'
-import { articlesDatabase } from '../../data/articles.js'
+import articlesDatabase from '~/data/articles'
 
 const route = useRoute()
 const article = articlesDatabase[route.params.id]
