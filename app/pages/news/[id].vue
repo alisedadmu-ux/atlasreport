@@ -1,9 +1,44 @@
 <script setup>
 import { useRoute } from 'vue-router'
-import articlesDatabase from '~/data/articles'
+import { computed } from 'vue'
+// Imports the categoriesData array via your default export setup
+import categoriesData from '~/data/articles'
 
 const route = useRoute()
-const article = articlesDatabase[route.params.id]
+
+// Locate the targeted sub-topic inside the 10 nested categories matrices
+const resolvedData = computed(() => {
+  const targetId = route.params.id
+  
+  for (const category of categoriesData) {
+    const foundTopic = category.topics.find(t => t.id === targetId)
+    if (foundTopic) {
+      return {
+        topic: foundTopic,
+        categoryName: category.name
+      }
+    }
+  }
+  return null
+})
+
+// Safely map values to match your template fields
+const article = computed(() => {
+  if (!resolvedData.value) return null
+  
+  const t = resolvedData.value.topic
+  
+  return {
+    title: t.name,
+    category: resolvedData.value.categoryName,
+    date: "REACTIVE REALTIME", // Fallback placeholder since raw fields altered
+    image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1000", // Generic tech image backup 
+    lead: t.info.split('\n')[0] || "", // Extracts line 1 cleanly for the stylized lead element
+    // Splits the long info text block at its '\n' line-breaks so your v-for loop renders perfectly!
+    paragraphs: t.info.split('\n'), 
+    summary: `System tracking report regarding strategic operations in ${t.name}. Complete structural breakdown mapped across local servers.`
+  }
+})
 </script>
 
 <template>
