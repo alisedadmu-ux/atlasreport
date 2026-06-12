@@ -1,42 +1,49 @@
 <script setup>
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
-// Imports the categoriesData array via your default export setup
+// Imports the default export from your articles.js file
 import categoriesData from '~/data/articles'
 
 const route = useRoute()
 
-// Locate the targeted sub-topic inside the 10 nested categories matrices
+// 1. Loop through the 10 categories to find the topic matching the URL ID
 const resolvedData = computed(() => {
   const targetId = route.params.id
   
+  // Make sure the data exists before looping
+  if (!categoriesData || !Array.isArray(categoriesData)) return null
+
   for (const category of categoriesData) {
-    const foundTopic = category.topics.find(t => t.id === targetId)
-    if (foundTopic) {
-      return {
-        topic: foundTopic,
-        categoryName: category.name
+    if (category.topics && Array.isArray(category.topics)) {
+      const foundTopic = category.topics.find(t => t.id === targetId)
+      if (foundTopic) {
+        return {
+          topic: foundTopic,
+          categoryName: category.name
+        }
       }
     }
   }
   return null
 })
 
-// Safely map values to match your template fields
+// 2. Map the nested topic keys to the exact flat keys your template uses
 const article = computed(() => {
   if (!resolvedData.value) return null
   
   const t = resolvedData.value.topic
   
+  // Split the info block into individual lines for paragraphs
+  const allLines = t.info ? t.info.split('\n') : []
+  
   return {
-    title: t.name,
-    category: resolvedData.value.categoryName,
-    date: "REACTIVE REALTIME", // Fallback placeholder since raw fields altered
-    image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1000", // Generic tech image backup 
-    lead: t.info.split('\n')[0] || "", // Extracts line 1 cleanly for the stylized lead element
-    // Splits the long info text block at its '\n' line-breaks so your v-for loop renders perfectly!
-    paragraphs: t.info.split('\n'), 
-    summary: `System tracking report regarding strategic operations in ${t.name}. Complete structural breakdown mapped across local servers.`
+    title: t.name || "",
+    category: resolvedData.value.categoryName || "TECH LOG",
+    date: "CORE SYSTEM",
+    image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1000", 
+    lead: allLines[0] || "", // Sets the very first line as your styled lead text
+    paragraphs: allLines,    // Passes the array of lines to your v-for loop
+    summary: `System metadata log tracking active deployments inside the ${t.name} network framework.`
   }
 })
 </script>
