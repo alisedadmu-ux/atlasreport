@@ -1,63 +1,119 @@
 <template>
-  <div class="news-app-container">
+  <div class="news-portal-container">
     
-    <aside class="category-sidebar">
-      <div class="sidebar-header">
-        <span class="pulse-icon">🔴</span> liveNews
+    <div class="breaking-ticker">
+      <span class="ticker-badge">FLASH</span>
+      <p class="ticker-text">Live global updates rolling out in real-time across premium sectors...</p>
+    </div>
+
+    <header class="portal-header">
+      <div class="header-brand-zone">
+        <p class="header-date">{{ currentFormattedDate }}</p>
+        <h1 class="portal-logo">ATLAS REPORT</h1>
+        <p class="header-edition">GLOBAL INTELLIGENCE FEED</p>
       </div>
-      <nav class="category-list">
-        <button 
-          v-for="cat in categories" 
-          :key="cat.id" 
-          :class="{ active: currentCategory === cat.id }"
-          @click="selectCategory(cat.id)"
-        >
-          <span class="cat-emoji">{{ cat.emoji }}</span>
-          <span class="cat-name">{{ cat.name }}</span>
-        </button>
+
+      <nav class="portal-nav">
+        <div class="primary-nav-links">
+          <button 
+            v-for="cat in visibleCategories" 
+            :key="cat.id" 
+            :class="{ active: currentCategory === cat.id }"
+            @click="selectCategory(cat.id)"
+          >
+            {{ cat.name }}
+          </button>
+          
+          <div class="dropdown" :class="{ open: showDropdown }">
+            <button class="dropdown-trigger" @click="showDropdown = !showDropdown">
+              More Sectors ▾
+            </button>
+            <div class="dropdown-menu">
+              <button 
+                v-for="cat in dropdownCategories" 
+                :key="cat.id" 
+                :class="{ active: currentCategory === cat.id }"
+                @click="selectCategory(cat.id); showDropdown = false"
+              >
+                {{ cat.emoji }} {{ cat.name }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="utility-nav-links">
+          <NuxtLink to="/about" class="util-link">About</NuxtLink>
+          <NuxtLink to="/contact" class="util-link">Contact</NuxtLink>
+        </div>
       </nav>
-    </aside>
+    </header>
 
-    <main class="main-content">
-      <header class="dashboard-header">
-        <h1>Explore {{ activeCategoryName }}</h1>
-        <p class="subtitle">Showing the top 10 fresh topics updated for today</p>
-      </header>
-
+    <main class="portal-layout">
+      
       <div v-if="isLoading" class="loading-state">
         <div class="spinner"></div>
-        <p>Fetching real-time updates...</p>
+        <p>Loading morning dispatches...</p>
       </div>
 
       <div v-else-if="errorMessage" class="error-state">
         <p>⚠️ {{ errorMessage }}</p>
-        <button @click="fetchNews">Try Again</button>
+        <button @click="fetchNews" class="retry-btn">Reload Newsroom</button>
       </div>
 
-      <div v-else class="articles-grid">
-        <div 
-          v-for="(article, index) in articles" 
-          :key="index" 
-          class="article-card"
-          @click="openArticle(article)"
-        >
-          <div class="card-image-wrapper">
+      <div v-else class="news-editorial-grid">
+        
+        <section v-if="articles[0]" class="hero-column" @click="openArticle(articles[0])">
+          <div class="hero-badge">TOP STORY</div>
+          <div class="hero-image-wrapper">
             <img 
-              :src="article.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600'" 
-              alt="News Banner" 
-              class="card-img"
+              :src="articles[0].image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1200'" 
+              alt="Hero Banner" 
+              class="hero-img"
             />
-            <span class="source-tag">{{ article.author || 'Global News' }}</span>
           </div>
-          <div class="card-body">
-            <span class="topic-counter">TOPIC #{{ index + 1 }}</span>
-            <h3 class="article-title">{{ article.title }}</h3>
-            <p class="article-snippet">{{ truncateText(article.description, 100) }}</p>
-            <div class="card-footer">
-              <span class="read-more-lbl">Read Full Coverage ➔</span>
+          <h2 class="hero-title">{{ articles[0].title }}</h2>
+          <p class="hero-snippet">{{ articles[0].description }}</p>
+          <span class="hero-meta">Reported by {{ articles[0].author || 'Global Newsroom' }}</span>
+        </section>
+
+        <section class="secondary-column">
+          <div 
+            v-for="(article, index) in articles.slice(1, 4)" 
+            :key="index" 
+            class="secondary-story-card"
+            @click="openArticle(article)"
+          >
+            <div class="secondary-img-wrapper">
+              <img 
+                :src="article.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=400'" 
+                alt="Story thumbnail"
+              />
+            </div>
+            <div class="secondary-card-text">
+              <h3 class="secondary-title">{{ article.title }}</h3>
+              <p class="secondary-snippet">{{ truncateText(article.description, 90) }}</p>
             </div>
           </div>
-        </div>
+        </section>
+
+        <section class="bulletin-column">
+          <h4 class="bulletin-heading">Latest Briefs</h4>
+          <div class="bulletin-list">
+            <div 
+              v-for="(article, index) in articles.slice(4, 10)" 
+              :key="index" 
+              class="bulletin-item"
+              @click="openArticle(article)"
+            >
+              <span class="bulletin-index">#{{ index + 5 }}</span>
+              <div class="bulletin-content">
+                <h5 class="bulletin-title">{{ article.title }}</h5>
+                <span class="bulletin-source">{{ article.author || 'Associated Press' }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </div>
     </main>
 
@@ -83,7 +139,7 @@
           <p class="lead-text">{{ selectedArticle.description }}</p>
           
           <div class="deep-info-block">
-            <h4>📊 Deep In-Sight Analysis & Background</h4>
+            <h4>📊 Editorial Context & In-Depth Reporting</h4>
             <p v-for="paragraph in extendedParagraphs" :key="paragraph">
               {{ paragraph }}
             </p>
@@ -92,7 +148,7 @@
         
         <footer class="modal-footer">
           <a :href="selectedArticle.url" target="_blank" class="source-link-btn">
-            View Original Live Press Release ↗
+            View Complete Press Release ↗
           </a>
         </footer>
       </div>
@@ -104,40 +160,39 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 
-// 🔑 REPLACE THIS WITH YOUR CURRENTS API KEY!
-const apiKey = 'RJA8PPXtWLNv1ZM96jH5K5wp0-gqbBi2sfhKNiSnUB0-_-ZK'
+// 🛠️ Disables the black global top bar layout so designs don't conflict
+definePageMeta({
+  layout: false
+})
 
-// 15 USER-FRIENDLY CATEGORIES
+// 🔑 PASTE YOUR NEW GNEWS API KEY HERE!
+const apiKey = '20b66473c224d35e265f8665816fa8dd'
+
+// Structured category mapping formatted explicitly for GNews endpoints
 const categories = [
-  { id: 'regional', name: 'World News', emoji: '🌍' },
-  { id: 'technology', name: 'Technology', emoji: '💻' },
+  { id: 'general', name: 'World', emoji: '🌍' },
+  { id: 'technology', name: 'Tech', emoji: '💻' },
   { id: 'sports', name: 'Sports', emoji: '⚽' },
-  { id: 'programming', name: 'Gaming & Dev', emoji: '🎮' },
+  { id: 'entertainment', name: 'Gaming & Ent', emoji: '🎮' },
   { id: 'science', name: 'Science', emoji: '🔬' },
-  { id: 'finance', name: 'Finance', emoji: '📈' },
-  { id: 'entertainment', name: 'Entertainment', emoji: '🎬' },
-  { id: 'business', name: 'Business', emoji: '💼' },
-  { id: 'health', name: 'Health & Medical', emoji: '🏥' },
-  { id: 'space', name: 'Space Exploration', emoji: '🚀' },
-  { id: 'lifestyle', name: 'Fashion & Style', emoji: '✨' },
-  { id: 'food', name: 'Food & Culinary', emoji: '🍕' },
-  { id: 'travel', name: 'Travel & Nature', emoji: '✈️' },
-  { id: 'academia', name: 'Education', emoji: '📚' },
-  { id: 'politics', name: 'Global Politics', emoji: '🏛️' }
+  { id: 'business', name: 'Finance & Biz', emoji: '📈' },
+  { id: 'health', name: 'Health', emoji: '🏥' }
 ]
 
-const currentCategory = ref('technology')
+const currentCategory = ref('general')
 const articles = ref([])
 const isLoading = ref(false)
 const errorMessage = ref('')
 const selectedArticle = ref(null)
+const showDropdown = ref(false)
 
-const activeCategoryName = computed(() => {
-  const matched = categories.find(c => c.id === currentCategory.value)
-  return matched ? matched.name : 'News'
+const visibleCategories = computed(() => categories.slice(0, 5))
+const dropdownCategories = computed(() => categories.slice(5))
+
+const currentFormattedDate = computed(() => {
+  return new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()
 })
 
-// Extended information context to add extra reading lines per article
 const extendedParagraphs = [
   "This unfolding story highlights a key shift in current international trends, signaling rapid changes across both local industries and global markets. Analysts note that tactical adjustments being deployed today will likely dictate resource distribution over the next fiscal decade.",
   "Historically, comparable occurrences faced heavy systemic bottlenecks; however, modern technological infrastructure and fluid asset communication networks are allowing updates to propagate across consumer brackets seamlessly.",
@@ -149,16 +204,34 @@ const fetchNews = async () => {
   isLoading.value = true
   errorMessage.value = ''
   
+  if (apiKey === '' || !apiKey) {
+    errorMessage.value = 'New API Key missing. Please paste your GNews token into the script block.'
+    isLoading.value = false
+    return
+  }
+
   try {
-    const response = await fetch(
-      `https://api.currentsapi.services/v1/latest-news?category=${currentCategory.value}&language=en&page_size=10&apiKey=${apiKey}`
-    )
-    
-    if (!response.ok) throw new Error('Failed to retrieve live news records.')
+    const url = `https://gnews.io/api/v4/top-headlines?category=${currentCategory.value}&lang=en&max=10&apikey=${apiKey}`
+    const response = await fetch(url)
     const data = await response.json()
-    articles.value = data.news || []
+    
+    if (response.ok && data.articles) {
+      articles.value = data.articles.map(art => ({
+        title: art.title,
+        description: art.description || art.content,
+        image: art.image,
+        url: art.url,
+        author: art.source ? art.source.name : 'Global News',
+        published: art.publishedAt
+      }))
+    } else if (data.errors) {
+      throw new Error(data.errors[0] || 'API Authentication issue.')
+    } else {
+      throw new Error('Failed to load fresh headlines from the newsroom server.')
+    }
   } catch (err) {
-    errorMessage.value = err.message || 'An error occurred while contacting the news engine.'
+    errorMessage.value = err.message || 'Error connecting to news server.'
+    console.error('API Error details:', err)
   } finally {
     isLoading.value = false
   }
@@ -171,225 +244,267 @@ const selectCategory = (categoryId) => {
 
 const openArticle = (article) => { selectedArticle.value = article }
 const closeArticle = () => { selectedArticle.value = null }
-
 const truncateText = (text, maxLen) => {
-  if (!text) return 'No context description available.'
+  if (!text) return 'No further text context summary available.'
   return text.length > maxLen ? text.substring(0, maxLen) + '...' : text
 }
-
 const formatDate = (dateStr) => {
   if (!dateStr) return 'Today'
   return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-onMounted(() => {
-  fetchNews()
-})
+onMounted(() => { fetchNews() })
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-.news-app-container {
-  display: flex;
-  background-color: #f8fafc;
+.news-portal-container {
+  background-color: #fcfbf7;
   font-family: 'Plus Jakarta Sans', sans-serif;
   min-height: 100vh;
-  color: #0f172a;
+  color: #111111;
 }
 
-/* SIDEBAR STYLES */
-.category-sidebar {
-  width: 280px;
-  background-color: #ffffff;
-  border-right: 1px solid #e2e8f0;
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-}
-
-.sidebar-header {
-  font-size: 1.5rem;
-  font-weight: 800;
-  padding: 2rem 1.5rem;
-  letter-spacing: -0.5px;
-  color: #1e40af;
-  border-bottom: 1px solid #f1f5f9;
-}
-.pulse-icon { font-size: 1rem; animation: blink 1.5s infinite; }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-.category-list {
-  padding: 1rem;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.category-list button {
+/* BREAKING TICKER */
+.breaking-ticker {
+  background-color: #a30000;
+  color: white;
+  padding: 0.5rem 2rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  width: 100%;
+  gap: 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.ticker-badge {
+  background: white;
+  color: #a30000;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+}
+
+/* EDITORIAL HEADERS */
+.portal-header {
+  border-bottom: 3px double #111111;
+  margin: 0 2rem;
+}
+.header-brand-zone {
+  text-align: center;
+  padding: 2rem 0;
+  border-bottom: 1px solid #e5e5e5;
+}
+.portal-logo {
+  font-family: 'Cinzel', serif;
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin: 0.5rem 0;
+}
+.header-date, .header-edition {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #555555;
+}
+
+/* NAVIGATION */
+.portal-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+}
+.primary-nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+.primary-nav-links button {
   background: none;
   border: none;
-  padding: 0.85rem 1rem;
-  border-radius: 10px;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s ease;
-}
-.cat-emoji { font-size: 1.25rem; }
-.cat-name { font-size: 0.95rem; font-weight: 600; color: #475569; }
-
-.category-list button:hover { background-color: #f1f5f9; }
-.category-list button.active { background-color: #e0f2fe; }
-.category-list button.active .cat-name { color: #0369a1; }
-
-/* MAIN DASHBOARD */
-.main-content {
-  flex: 1;
-  padding: 3rem;
-  overflow-y: auto;
-}
-
-.dashboard-header { margin-bottom: 2.5rem; }
-.dashboard-header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; }
-.subtitle { color: #64748b; font-size: 1.1rem; margin-top: 0.25rem; }
-
-/* LOADING/ERROR */
-.loading-state, .error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 5rem 0;
-  color: #64748b;
-}
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e2e8f0;
-  border-top-color: #2563eb;
-  border-radius: 50%;
-  animation: spin 1s infinite linear;
-  margin-bottom: 1rem;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* 10 TOPICS GRID */
-.articles-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2rem;
-}
-
-.article-card {
-  background-color: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  transition: transform 0.25s, box-shadow 0.25s;
-  display: flex;
-  flex-direction: column;
-}
-.article-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.card-image-wrapper { position: relative; height: 180px; width: 100%; }
-.card-img { width: 100%; height: 100%; object-fit: cover; }
-.source-tag {
-  position: absolute;
-  bottom: 0.75rem;
-  left: 0.75rem;
-  background-color: rgba(15, 23, 42, 0.85);
-  color: #ffffff;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 6px;
-  backdrop-filter: blur(4px);
-}
-
-.card-body { padding: 1.5rem; display: flex; flex-direction: column; flex: 1; }
-.topic-counter { color: #2563eb; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; }
-.article-title { font-size: 1.15rem; font-weight: 700; margin: 0.5rem 0; line-height: 1.4; color: #1e293b; }
-.article-snippet { color: #64748b; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem; }
-.card-footer { margin-top: auto; border-top: 1px solid #f1f5f9; padding-top: 1rem; }
-.read-more-lbl { font-size: 0.9rem; font-weight: 700; color: #2563eb; }
-
-/* MODAL OVERLAY STYLES */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background-color: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(8px);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.modal-window {
-  background-color: #ffffff;
-  width: 100%;
-  max-width: 800px;
-  max-height: 85vh;
-  border-radius: 24px;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  padding: 2.5rem;
-}
-
-.close-btn {
-  position: absolute;
-  top: 1.5rem; right: 1.5rem;
-  background: #f1f5f9; border: none;
-  width: 36px; height: 36px; border-radius: 50%;
-  font-size: 1.1rem; cursor: pointer; color: #64748b;
-  display: flex; align-items: center; justify-content: center;
-}
-
-.modal-header { margin-bottom: 1.5rem; padding-right: 2rem; }
-.modal-meta { display: flex; gap: 1rem; font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600; }
-.modal-source { color: #2563eb; }
-.modal-header h2 { font-size: 1.8rem; font-weight: 800; line-height: 1.3; }
-
-.modal-hero-img { width: 100%; height: 320px; object-fit: cover; border-radius: 16px; margin-bottom: 2rem; }
-
-.modal-content-body { font-size: 1.1rem; line-height: 1.8; color: #334155; }
-.lead-text { font-weight: 600; color: #1e293b; margin-bottom: 1.5rem; font-size: 1.2rem; }
-
-.deep-info-block {
-  background-color: #f8fafc;
-  border-left: 4px solid #2563eb;
-  padding: 1.5rem;
-  border-radius: 0 12px 12px 0;
-  margin-top: 2rem;
-}
-.deep-info-block h4 { margin: 0 0 1rem 0; font-size: 1.1rem; color: #1e293b; }
-.deep-info-block p { font-size: 0.95rem; margin-bottom: 1rem; color: #475569; }
-
-.modal-footer { margin-top: 3rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; text-align: right; }
-.source-link-btn {
-  display: inline-block;
-  background-color: #0f172a;
-  color: #ffffff;
-  padding: 0.8rem 1.5rem;
-  border-radius: 10px;
-  text-decoration: none;
+  font-family: inherit;
   font-weight: 700;
   font-size: 0.95rem;
-  transition: background 0.2s;
+  color: #333333;
+  cursor: pointer;
+  padding: 0.25rem 0;
 }
-.source-link-btn:hover { background-color: #1e293b; }
+.primary-nav-links button:hover, .primary-nav-links button.active {
+  color: #a30000;
+  border-bottom: 2px solid #a30000;
+}
+.util-link {
+  text-decoration: none;
+  color: #666666;
+  font-size: 0.9rem;
+  margin-left: 1.25rem;
+  font-weight: 600;
+}
+
+/* DROPDOWN MENU SECTORS */
+.dropdown { position: relative; display: inline-block; }
+.dropdown-trigger { font-weight: 700; color: #a30000 !important; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 0.95rem; }
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%; left: 0;
+  background-color: #ffffff;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  border: 1px solid #e5e5e5;
+  z-index: 10;
+  width: 200px;
+  border-radius: 6px;
+}
+.dropdown.open .dropdown-menu { display: block; }
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem !important;
+  border: none !important;
+}
+.dropdown-menu button:hover { background-color: #f7f7f7; }
+
+/* EDITORIAL GRID SYSTEM */
+.portal-layout { padding: 2rem; }
+.news-editorial-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.25fr 1fr;
+  gap: 2.5rem;
+}
+
+/* COLUMN 1: HERO TOP STORY */
+.hero-column {
+  cursor: pointer;
+  border-right: 1px solid #e5e5e5;
+  padding-right: 2.5rem;
+}
+.hero-badge {
+  background-color: #111111;
+  color: white;
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+.hero-image-wrapper { width: 100%; height: 380px; overflow: hidden; }
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin-bottom: 1.25rem;
+}
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+.hero-snippet {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #333333;
+  margin-bottom: 1rem;
+}
+.hero-meta { font-size: 0.8rem; font-weight: 700; color: #666666; }
+
+/* COLUMN 2: SECONDARY POSTS */
+.secondary-column {
+  border-right: 1px solid #e5e5e5;
+  padding-right: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+.secondary-story-card {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid #eeeeee;
+}
+.secondary-img-wrapper { width: 100%; height: 160px; overflow: hidden; }
+.secondary-story-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.secondary-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+.secondary-snippet { font-size: 0.9rem; color: #555555; margin-top: 0.25rem; }
+
+/* COLUMN 3: SIDE TICKER BULLETIN LIST */
+.bulletin-column { padding-left: 0.5rem; }
+.bulletin-heading {
+  font-family: 'Cinzel', serif;
+  border-bottom: 2px solid #111111;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
+  font-size: 1.1rem;
+}
+.bulletin-list { display: flex; flex-direction: column; gap: 1.25rem; }
+.bulletin-item {
+  display: flex;
+  gap: 1rem;
+  cursor: pointer;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed #dddddd;
+}
+.bulletin-index {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #a30000;
+}
+.bulletin-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.bulletin-source { font-size: 0.75rem; color: #777777; font-weight: 600; display: block; margin-top: 0.25rem; }
+
+/* LOADING/ERRORS */
+.loading-state, .error-state { text-align: center; padding: 6rem; color: #555555; }
+.spinner {
+  width: 40px; height: 40px; border: 3px solid #e5e5e5;
+  border-top-color: #a30000; border-radius: 50%;
+  animation: spin 1s infinite linear; margin: 0 auto 1rem;
+}
+.retry-btn { background: #111111; color: white; padding: 0.5rem 1rem; border: none; cursor: pointer; font-weight: 700; margin-top: 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* MODAL FULL DISPLAY OVERLAYS */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
+  z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 2rem;
+}
+.modal-window {
+  background-color: #fcfbf7; width: 100%; max-width: 750px;
+  max-height: 85vh; border-radius: 0; overflow-y: auto;
+  position: relative; padding: 3rem; border: 4px solid #111111;
+}
+.close-btn {
+  position: absolute; top: 1rem; right: 1rem; background: #111111;
+  border: none; color: white; width: 32px; height: 32px; cursor: pointer;
+}
+.modal-header h2 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-top: 0.5rem; }
+.modal-meta { display: flex; gap: 1rem; font-size: 0.8rem; color: #666666; font-weight: 700; }
+.modal-source { color: #a30000; }
+.modal-hero-img { width: 100%; height: 300px; object-fit: cover; margin: 1.5rem 0; }
+.modal-content-body { font-size: 1.05rem; line-height: 1.7; color: #222222; }
+.lead-text { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-style: italic; margin-bottom: 1.5rem; }
+.deep-info-block { background: #f4f1ea; padding: 1.5rem; border-top: 2px solid #a30000; margin-top: 2rem; }
+.deep-info-block h4 { font-family: 'Cinzel', serif; margin-bottom: 0.75rem; }
+.deep-info-block p { font-size: 0.95rem; margin-bottom: 0.75rem; color: #444444; }
+.modal-footer { margin-top: 2.5rem; text-align: right; border-top: 1px solid #e5e5e5; padding-top: 1.5rem; }
+.source-link-btn { background: #111111; color: white; padding: 0.75rem 1.2rem; text-decoration: none; font-weight: 700; font-size: 0.9rem; }
 </style>
