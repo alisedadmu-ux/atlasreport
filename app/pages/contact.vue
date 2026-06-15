@@ -1,77 +1,185 @@
+<template>
+  <div class="news-app-container">
+    
+    <aside class="category-sidebar">
+      <div class="sidebar-header">
+        <span class="pulse-icon">🔴</span> liveNews
+      </div>
+      <nav class="category-list">
+        <NuxtLink to="/" class="nav-btn">📰 Home Dashboard</NuxtLink>
+        <NuxtLink to="/about" class="nav-btn">ℹ️ About Platform</NuxtLink>
+        <NuxtLink to="/contact" class="nav-btn active">📞 Contact Support</NuxtLink>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="dashboard-header">
+        <h1>Contact Support</h1>
+        <p class="subtitle">Have feedback or need help? Send us a direct message below.</p>
+      </header>
+
+      <div class="form-card">
+        <form @submit.prevent="handleSubmit" class="contact-form">
+          <div class="form-group">
+            <label for="name">Your Name</label>
+            <input type="text" id="name" v-model="form.name" placeholder="John Doe" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" v-model="form.email" placeholder="name@example.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" v-model="form.message" rows="6" placeholder="Type your feedback or question here..." required></textarea>
+          </div>
+
+          <button type="submit" class="submit-btn">Send Message ➔</button>
+        </form>
+        <p v-if="submitted" class="success-msg">✅ Thank you! Your message has been sent successfully.</p>
+      </div>
+    </main>
+
+  </div>
+</template>
+
 <script setup>
 import { ref } from 'vue'
 
 const form = ref({
-  operatorId: 'USR_//' + Math.floor(1000 + Math.random() * 9000),
-  subject: '',
-  payload: ''
+  name: '',
+  email: '',
+  message: ''
 })
+const submitted = ref(false)
 
-const transmitSecurePayload = () => {
-  if (!form.value.subject || !form.value.payload) {
-    alert('CRITICAL_ERROR: All terminal validation fields must be populated.')
-    return
-  }
-  
-  alert(`UPLINK SUCCESSFUL\n\nOperator: ${form.value.operatorId}\nSignal sent safely through secure data channels.`);
-  form.value.subject = ''
-  form.value.payload = ''
+const handleSubmit = () => {
+  submitted.value = true
+  form.value = { name: '', email: '', message: '' }
 }
 </script>
 
-<template>
-  <main class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased py-10 px-4 sm:px-6">
-    <div class="max-w-2xl mx-auto space-y-8">
-      
-      <div class="border-b border-slate-900 pb-6">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse"></span>
-          <span class="text-[10px] font-mono text-fuchsia-400 uppercase tracking-widest font-bold">Secure Communications Array</span>
-        </div>
-        <h1 class="text-3xl font-black text-white tracking-tight">TRANSMIT_UPLINK</h1>
-      </div>
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-      <div class="bg-slate-900/30 border border-slate-900 rounded-2xl p-6 space-y-4 backdrop-blur-sm shadow-2xl">
-        
-        <div class="space-y-1.5 font-mono text-xs">
-          <label class="text-slate-500 font-bold block uppercase tracking-wider">// Assign Transmitter Signature</label>
-          <input 
-            v-model="form.operatorId" 
-            type="text" 
-            readonly 
-            class="w-full bg-black/40 border border-slate-900 rounded-xl px-4 py-2.5 text-slate-400 focus:outline-none select-none cursor-not-allowed"
-          />
-        </div>
+.news-app-container {
+  display: flex;
+  background-color: #f8fafc;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  min-height: 100vh;
+  color: #0f172a;
+}
 
-        <div class="space-y-1.5 font-mono text-xs">
-          <label class="text-slate-400 font-bold block uppercase tracking-wider">// Vector Subject Input</label>
-          <input 
-            v-model="form.subject" 
-            type="text" 
-            placeholder="Specify technical department target..." 
-            class="w-full bg-black/50 border border-slate-800/80 rounded-xl px-4 py-2.5 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
-          />
-        </div>
+.category-sidebar {
+  width: 280px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
 
-        <div class="space-y-1.5 font-mono text-xs">
-          <label class="text-slate-400 font-bold block uppercase tracking-wider">// Encrypted Data Payload</label>
-          <textarea 
-            v-model="form.payload" 
-            rows="5"
-            placeholder="Write transmission brief strings here..." 
-            class="w-full bg-black/50 border border-slate-800/80 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all font-sans text-sm resize-none"
-          ></textarea>
-        </div>
+.sidebar-header {
+  font-size: 1.5rem;
+  font-weight: 800;
+  padding: 2rem 1.5rem;
+  color: #1e40af;
+  border-bottom: 1px solid #f1f5f9;
+}
+.pulse-icon { font-size: 1rem; }
 
-        <button 
-          @click="transmitSecurePayload"
-          class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 font-mono text-xs uppercase font-bold tracking-widest text-white py-3 rounded-xl transition-all shadow-lg shadow-violet-500/10 active:scale-[0.99]"
-        >
-          EXECUTE_SIGNAL_TRANSMISSION_//
-        </button>
+.category-list {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-      </div>
+.nav-btn {
+  display: block;
+  text-decoration: none;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+.nav-btn:hover { background-color: #f1f5f9; }
+.nav-btn.active { background-color: #e0f2fe; color: #0369a1; }
 
-    </div>
-  </main>
-</template>
+.main-content {
+  flex: 1;
+  padding: 3rem;
+  overflow-y: auto;
+}
+
+/* 🛠️ FIXED LACK OF BRACES HERE */
+.dashboard-header { 
+  margin-bottom: 2.5rem; 
+}
+
+.dashboard-header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; }
+.subtitle { color: #64748b; font-size: 1.1rem; margin-top: 0.25rem; }
+
+.form-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2.5rem;
+  max-width: 600px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.form-group input, .form-group textarea {
+  font-family: inherit;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #0f172a;
+}
+.form-group input:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.submit-btn {
+  font-family: inherit;
+  background-color: #0f172a;
+  color: #ffffff;
+  border: none;
+  padding: 0.85rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+}
+.submit-btn:hover { background-color: #1e293b; }
+
+.success-msg {
+  margin-top: 1.5rem;
+  color: #16a34a;
+  font-weight: 600;
+  text-align: center;
+}
+</style>
