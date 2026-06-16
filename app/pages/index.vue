@@ -62,7 +62,7 @@
 
       <div v-else class="news-editorial-grid">
         
-        <section v-if="articles[0]" class="hero-column" @click="openArticle(articles[0])">
+        <section v-if="articles[0]" class="hero-column" @click="openArticle(articles[0].url)">
           <div class="hero-badge">TOP STORY</div>
           <div class="hero-image-wrapper">
             <img 
@@ -81,7 +81,7 @@
             v-for="(article, index) in articles.slice(1, 4)" 
             :key="index" 
             class="secondary-story-card"
-            @click="openArticle(article)"
+            @click="openArticle(article.url)"
           >
             <div class="secondary-img-wrapper">
               <img 
@@ -103,7 +103,7 @@
               v-for="(article, index) in articles.slice(4, 10)" 
               :key="index" 
               class="bulletin-item"
-              @click="openArticle(article)"
+              @click="openArticle(article.url)"
             >
               <span class="bulletin-index">#{{ index + 5 }}</span>
               <div class="bulletin-content">
@@ -242,7 +242,10 @@ const selectCategory = (categoryId) => {
   fetchNews()
 }
 
-const openArticle = (article) => { selectedArticle.value = article }
+const openArticle = (articleUrl) => {
+  if (!articleUrl) return
+  window.open(articleUrl, '_blank')
+}
 const closeArticle = () => { selectedArticle.value = null }
 const truncateText = (text, maxLen) => {
   if (!text) return 'No further text context summary available.'
