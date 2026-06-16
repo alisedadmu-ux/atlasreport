@@ -3,7 +3,7 @@
     
     <div class="breaking-ticker">
       <span class="ticker-badge">FLASH</span>
-      <p class="ticker-text">Live global updates rolling out in real-time across premium sectors...</p>
+      <p class="ticker-text">Live global updates rolling out across premium intelligence sectors...</p>
     </div>
 
     <header class="portal-header">
@@ -50,48 +50,38 @@
 
     <main class="portal-layout">
       
-      <div v-if="isLoading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading morning dispatches...</p>
-      </div>
-
-      <div v-else-if="errorMessage" class="error-state">
-        <p>⚠️ {{ errorMessage }}</p>
-        <button @click="fetchNews" class="retry-btn">Reload Newsroom</button>
-      </div>
-
-      <div v-else class="news-editorial-grid">
+      <div class="news-editorial-grid">
         
-        <section v-if="articles[0]" class="hero-column" @click="openArticle(articles[0].url)">
+        <section v-if="filteredArticles[0]" class="hero-column" @click="openArticle(filteredArticles[0])">
           <div class="hero-badge">TOP STORY</div>
           <div class="hero-image-wrapper">
             <img 
-              :src="articles[0].image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1200'" 
+              :src="filteredArticles[0].image" 
               alt="Hero Banner" 
               class="hero-img"
             />
           </div>
-          <h2 class="hero-title">{{ articles[0].title }}</h2>
-          <p class="hero-snippet">{{ articles[0].description }}</p>
-          <span class="hero-meta">Reported by {{ articles[0].author || 'Global Newsroom' }}</span>
+          <h2 class="hero-title">{{ filteredArticles[0].title }}</h2>
+          <p class="hero-snippet">{{ filteredArticles[0].description }}</p>
+          <span class="hero-meta">Reported by {{ filteredArticles[0].author }}</span>
         </section>
 
         <section class="secondary-column">
           <div 
-            v-for="(article, index) in articles.slice(1, 4)" 
+            v-for="(article, index) in filteredArticles.slice(1, 4)" 
             :key="index" 
             class="secondary-story-card"
-            @click="openArticle(article.url)"
+            @click="openArticle(article)"
           >
             <div class="secondary-img-wrapper">
               <img 
-                :src="article.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=400'" 
+                :src="article.image" 
                 alt="Story thumbnail"
               />
             </div>
             <div class="secondary-card-text">
               <h3 class="secondary-title">{{ article.title }}</h3>
-              <p class="secondary-snippet">{{ truncateText(article.description, 90) }}</p>
+              <p class="secondary-snippet">{{ truncateText(article.description, 95) }}</p>
             </div>
           </div>
         </section>
@@ -100,15 +90,15 @@
           <h4 class="bulletin-heading">Latest Briefs</h4>
           <div class="bulletin-list">
             <div 
-              v-for="(article, index) in articles.slice(4, 10)" 
+              v-for="(article, index) in filteredArticles.slice(4, 9)" 
               :key="index" 
               class="bulletin-item"
-              @click="openArticle(article.url)"
+              @click="openArticle(article)"
             >
               <span class="bulletin-index">#{{ index + 5 }}</span>
               <div class="bulletin-content">
                 <h5 class="bulletin-title">{{ article.title }}</h5>
-                <span class="bulletin-source">{{ article.author || 'Associated Press' }}</span>
+                <span class="bulletin-source">{{ article.author }}</span>
               </div>
             </div>
           </div>
@@ -123,14 +113,14 @@
         
         <header class="modal-header">
           <div class="modal-meta">
-            <span class="modal-source">{{ selectedArticle.author || 'Global Network' }}</span>
-            <span class="modal-date">{{ formatDate(selectedArticle.published) }}</span>
+            <span class="modal-source">{{ selectedArticle.author }}</span>
+            <span class="modal-date">{{ selectedArticle.published }}</span>
           </div>
           <h2>{{ selectedArticle.title }}</h2>
         </header>
 
         <img 
-          :src="selectedArticle.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1200'" 
+          :src="selectedArticle.image" 
           alt="Full Banner" 
           class="modal-hero-img"
         />
@@ -139,7 +129,7 @@
           <p class="lead-text">{{ selectedArticle.description }}</p>
           
           <div class="deep-info-block">
-            <h4>📊 Editorial Context & In-Depth Reporting</h4>
+            <h4>📊 Editorial Context & In-Depth Analysis</h4>
             <p v-for="paragraph in extendedParagraphs" :key="paragraph">
               {{ paragraph }}
             </p>
@@ -147,9 +137,9 @@
         </div>
         
         <footer class="modal-footer">
-          <a :href="selectedArticle.url" target="_blank" class="source-link-btn">
-            View Complete Press Release ↗
-          </a>
+          <button class="source-link-btn" @click="closeArticle">
+            Return to Dashboard 
+          </button>
         </footer>
       </div>
     </div>
@@ -158,39 +148,202 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 
-// 🛠️ Disables the black global top bar layout so designs don't conflict
 definePageMeta({
   layout: false
 })
 
-// 🔑 PASTE YOUR NEW GNEWS API KEY HERE!
-const apiKey = '20b66473c224d35e265f8665816fa8dd'
-
-// Structured category mapping formatted explicitly for GNews endpoints
 const categories = [
   { id: 'general', name: 'World', emoji: '🌍' },
   { id: 'technology', name: 'Tech', emoji: '💻' },
   { id: 'sports', name: 'Sports', emoji: '⚽' },
-  { id: 'entertainment', name: 'Gaming & Ent', emoji: '🎮' },
   { id: 'science', name: 'Science', emoji: '🔬' },
-  { id: 'business', name: 'Finance & Biz', emoji: '📈' },
+  { id: 'business', name: 'Business', emoji: '📈' },
   { id: 'health', name: 'Health', emoji: '🏥' }
 ]
 
 const currentCategory = ref('general')
-const articles = ref([])
-const isLoading = ref(false)
-const errorMessage = ref('')
 const selectedArticle = ref(null)
 const showDropdown = ref(false)
 
-const visibleCategories = computed(() => categories.slice(0, 5))
-const dropdownCategories = computed(() => categories.slice(5))
+const visibleCategories = computed(() => categories.slice(0, 4))
+const dropdownCategories = computed(() => categories.slice(4))
 
 const currentFormattedDate = computed(() => {
   return new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()
+})
+
+// Static database of news articles perfectly mapped to matching categories
+const staticDatabase = [
+  // --- GENERAL / WORLD ---
+  {
+    category: 'general',
+    title: 'Global Summit Outlines Structural Architecture for Clean Energy Distribution Across Transit Corridors',
+    description: 'International delegations assembled in Geneva to finalize the global standard framework targeting logistics grids, sustainable supply corridors, and clean manufacturing ecosystems.',
+    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800',
+    author: 'Reuters Desk',
+    published: 'June 16, 2026'
+  },
+  {
+    category: 'general',
+    title: 'Deep Maritime Exploration Teams Uncover Submerged Geothermal Vents Near Atlantic Ridge',
+    description: 'Oceanographic researchers mapping deep abyssal zones confirm the location of previously undocumented active thermal networks hosting unique ecosystems.',
+    image: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?q=80&w=800',
+    author: 'Associated Press',
+    published: 'June 16, 2026'
+  },
+  {
+    category: 'general',
+    title: 'Metropolitan Infrastructure Projects Test High-Capacity Smart Grids to Minimize Power Fluctuations',
+    description: 'Urban planning committees deploy predictive power flow networks to dynamically balance grid load across massive residential districts.',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800',
+    author: 'Global Bureau',
+    published: 'June 15, 2026'
+  },
+  {
+    category: 'general',
+    title: 'Global Shipping Consortia Implement Rerouting Protocols to Optimize Transit Schedules',
+    description: 'International freight companies shift tracking coordinates across major oceanic channels to minimize fuel burn and coordinate container drops.',
+    image: 'https://images.unsplash.com/photo-1494412519320-aa613dfb7738?q=80&w=800',
+    author: 'Maritime Press',
+    published: 'June 15, 2026'
+  },
+  {
+    category: 'general',
+    title: 'Agricultural Engineering Networks Release Comprehensive Soil Viability Mapping Database',
+    description: 'Agronomists compile large-scale datasets detailing micro-nutrient properties across continuous cultivation belts to assist precision farming operations.',
+    image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=800',
+    author: 'Nature Desk',
+    published: 'June 14, 2026'
+  },
+
+  // --- TECHNOLOGY ---
+  {
+    category: 'technology',
+    title: 'Quantum Compute Clusters Demonstrate Quantum Superiority in Structural Engine Matrix Computations',
+    description: 'Hardware developers achieve computational stability across custom silicon arrays, safely rendering sub-atomic simulation algorithms in record speed.',
+    image: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=800',
+    author: 'Tech Intelligence',
+    published: 'June 16, 2026'
+  },
+  {
+    category: 'technology',
+    title: 'Open-Source Database Maintainers Roll Out Cryptographic Architecture Patch to Prevent Grid Leaks',
+    description: 'Security leads release localized updates securing multi-tenant ledger setups against distributed dictionary probing attempts.',
+    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800',
+    author: 'Cyber Review',
+    published: 'June 16, 2026'
+  },
+  {
+    category: 'technology',
+    title: 'Solid-State Battery Architectures Match Lithium Ion Energy Density Benchmarks During Long Tests',
+    description: 'Lab teams showcase non-volatile solid electrolyte storage frames capable of maintaining charge across 5,000 continuous hardware cycles.',
+    image: 'https://images.unsplash.com/photo-1558441719-ff34b0524a24?q=80&w=800',
+    author: 'Hardware Feed',
+    published: 'June 15, 2026'
+  },
+  {
+    category: 'technology',
+    title: 'Edge Router Framework Updates Achieve Single-Digit Latency in Localized Smart-Home Ecosystems',
+    description: 'Wireless protocols successfully sync multi-device sensors using integrated localized radio chips without hitting standard cloud pipelines.',
+    image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=800',
+    author: 'Network World',
+    published: 'June 14, 2026'
+  },
+
+  // --- SPORTS ---
+  {
+    category: 'sports',
+    title: 'International Racing Circuits Redesign High-Velocity Curves Following Advanced Computational Modeling',
+    description: 'Aerodynamic engineers adjust mechanical asphalt compositions and barrier angles to balance vehicle safety with high-speed competitive friction.',
+    image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=800',
+    author: 'Circuit Desk',
+    published: 'June 16, 2026'
+  },
+  {
+    category: 'sports',
+    title: 'Global Football Analytics Agency Tracks Real-Time Spatial Tracking Patterns in Championship Matchups',
+    description: 'Wearable sensor metrics gather precise telemetry data measuring mechanical velocity and acceleration curves of prime championship athletes.',
+    image: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=800',
+    author: 'Athletic Metrics',
+    published: 'June 15, 2026'
+  },
+  {
+    category: 'sports',
+    title: 'Training Architecture Combines Virtual Reality Environments with Biomechanical Stress Analysis',
+    description: 'Elite gymnastics programs deploy sensor arrays inside immersive simulators to study ankle rotation impacts and land consistency frames.',
+    image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=800',
+    author: 'Sports Science',
+    published: 'June 14, 2026'
+  },
+
+  // --- SCIENCE ---
+  {
+    category: 'science',
+    title: 'Orbital Observatories Transmit Deep-Field Core Visuals Detailing Stellar Nurseries Near Perseus Arm',
+    description: 'Spectroscopic instrumentation parses heavy infrared layers to locate early protostar gas configurations moving within high-density cosmic waves.',
+    image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=800',
+    author: 'Astro Review',
+    published: 'June 16, 2026'
+  },
+  {
+    category: 'science',
+    title: 'Synthetic Biologists Successfully Construct Enzymes Capable of Breaking Down Rigid Industrial Composites',
+    description: 'Laboratory groups isolate a stable protein alignment that isolates and metabolizes high-density polymer compounds in room temperature environments.',
+    image: 'https://images.unsplash.com/photo-1532187863486-abf9d39d6618?q=80&w=800',
+    author: 'Science Daily',
+    published: 'June 16, 2026'
+  },
+  {
+    category: 'science',
+    title: 'Climatology Core Samples Reveal Century-Long Precipitation Shift Maps Across Arid Basins',
+    description: 'Geological survey teams complete drilling pipelines across remote mineral beds to trace long-range moisture cycles spanning ancestral timelines.',
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800',
+    author: 'Geo Journal',
+    published: 'June 15, 2026'
+  },
+
+  // --- BUSINESS ---
+  {
+    category: 'business',
+    title: 'Logistics Software Mergers Re-Index Standard Cargo Delivery Values Across Northern Channels',
+    description: 'Enterprise integration platforms combine operations, standardizing automated maritime manifest validation across major deepwater shipping ports.',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800',
+    author: 'Financial Press',
+    published: 'June 16, 2026'
+  },
+  {
+    category: 'business',
+    title: 'Global Treasury Indexes Stabilize Following Adjusted Inter-Bank Asset Security Allocations',
+    description: 'Central clearing houses coordinate liquidity pools to minimize risk spikes across multinational wholesale credit transaction lanes.',
+    image: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?q=80&w=800',
+    author: 'Wall Street Bureau',
+    published: 'June 15, 2026'
+  },
+
+  // --- HEALTH ---
+  {
+    category: 'health',
+    title: 'High-Resolution Protein Structure Mapping Pinpoints Vulnerable Entry Mechanisms in Viral Coats',
+    description: 'Microscopic scanning arrays help research networks trace the spatial geometry of outer membrane tags to plan tailored preventive blocking techniques.',
+    image: 'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=800',
+    author: 'Medical Network',
+    published: 'June 16, 2026'
+  },
+  {
+    category: 'health',
+    title: 'Distributed Telehealth Networks Implement Encrypted Protocols to Protect Rural Diagnostic Data',
+    description: 'Healthcare infrastructure upgrades deploy zero-knowledge network nodes ensuring immediate processing of patient records across outlying clinical stations.',
+    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800',
+    author: 'Lancet Feed',
+    published: 'June 15, 2026'
+  }
+]
+
+// Computed property that instantly filters stories when a category button is clicked
+const filteredArticles = computed(() => {
+  return staticDatabase.filter(art => art.category === currentCategory.value)
 })
 
 const extendedParagraphs = [
@@ -200,63 +353,17 @@ const extendedParagraphs = [
   "As full field disclosures continue to develop over the upcoming hours, field teams remain highly focused on regulatory reviews. Follow-up investigations are scheduled to verify standard long-term resilience frameworks across active nodes."
 ]
 
-const fetchNews = async () => {
-  isLoading.value = true
-  errorMessage.value = ''
-  
-  if (apiKey === '' || !apiKey) {
-    errorMessage.value = 'New API Key missing. Please paste your GNews token into the script block.'
-    isLoading.value = false
-    return
-  }
-
-  try {
-    const url = `https://gnews.io/api/v4/top-headlines?category=${currentCategory.value}&lang=en&max=10&apikey=${apiKey}`
-    const response = await fetch(url)
-    const data = await response.json()
-    
-    if (response.ok && data.articles) {
-      articles.value = data.articles.map(art => ({
-        title: art.title,
-        description: art.description || art.content,
-        image: art.image,
-        url: art.url,
-        author: art.source ? art.source.name : 'Global News',
-        published: art.publishedAt
-      }))
-    } else if (data.errors) {
-      throw new Error(data.errors[0] || 'API Authentication issue.')
-    } else {
-      throw new Error('Failed to load fresh headlines from the newsroom server.')
-    }
-  } catch (err) {
-    errorMessage.value = err.message || 'Error connecting to news server.'
-    console.error('API Error details:', err)
-  } finally {
-    isLoading.value = false
-  }
-}
-
 const selectCategory = (categoryId) => {
   currentCategory.value = categoryId
-  fetchNews()
 }
 
-const openArticle = (articleUrl) => {
-  if (!articleUrl) return
-  window.open(articleUrl, '_blank')
-}
+const openArticle = (article) => { selectedArticle.value = article }
 const closeArticle = () => { selectedArticle.value = null }
+
 const truncateText = (text, maxLen) => {
-  if (!text) return 'No further text context summary available.'
+  if (!text) return ''
   return text.length > maxLen ? text.substring(0, maxLen) + '...' : text
 }
-const formatDate = (dateStr) => {
-  if (!dateStr) return 'Today'
-  return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
-onMounted(() => { fetchNews() })
 </script>
 
 <style scoped>
@@ -474,16 +581,6 @@ onMounted(() => { fetchNews() })
 }
 .bulletin-source { font-size: 0.75rem; color: #777777; font-weight: 600; display: block; margin-top: 0.25rem; }
 
-/* LOADING/ERRORS */
-.loading-state, .error-state { text-align: center; padding: 6rem; color: #555555; }
-.spinner {
-  width: 40px; height: 40px; border: 3px solid #e5e5e5;
-  border-top-color: #a30000; border-radius: 50%;
-  animation: spin 1s infinite linear; margin: 0 auto 1rem;
-}
-.retry-btn { background: #111111; color: white; padding: 0.5rem 1rem; border: none; cursor: pointer; font-weight: 700; margin-top: 1rem; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
 /* MODAL FULL DISPLAY OVERLAYS */
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -509,5 +606,5 @@ onMounted(() => { fetchNews() })
 .deep-info-block h4 { font-family: 'Cinzel', serif; margin-bottom: 0.75rem; }
 .deep-info-block p { font-size: 0.95rem; margin-bottom: 0.75rem; color: #444444; }
 .modal-footer { margin-top: 2.5rem; text-align: right; border-top: 1px solid #e5e5e5; padding-top: 1.5rem; }
-.source-link-btn { background: #111111; color: white; padding: 0.75rem 1.2rem; text-decoration: none; font-weight: 700; font-size: 0.9rem; }
+.source-link-btn { background: #111111; color: white; padding: 0.75rem 1.2rem; border: none; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
 </style>
