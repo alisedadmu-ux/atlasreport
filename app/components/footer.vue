@@ -1,44 +1,49 @@
 <template>
-  <footer class="w-full bg-slate-950 border-t border-slate-800 text-slate-400 py-12 mt-20 block">
-    <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8">
-      
-      <div class="space-y-3">
-        <div class="text-lg font-bold text-slate-100">
-          Global <span class="text-teal-400">NewsHub</span>
+  <footer class="editorial-footer w-full bg-white border-t-2 border-gray-900 py-12 mt-20">
+    <div class="max-w-7xl mx-auto px-6">
+      <!-- Footer Top Section -->
+      <div class="grid md:grid-cols-3 gap-12 pb-12 border-b border-gray-200">
+        <!-- Masthead -->
+        <div class="space-y-2">
+          <h3 class="font-serif text-2xl font-bold text-gray-900">ATLAS REPORT</h3>
+          <p class="text-xs tracking-widest text-gray-600 font-bold">GLOBAL INTELLIGENCE FEED</p>
+          <p class="text-sm text-gray-700 mt-3 leading-relaxed">
+            Premium editorial coverage delivering verified reporting across geopolitics, science, and markets.
+          </p>
         </div>
-        <p class="text-xs leading-relaxed text-slate-500">
-          Delivering reliable breaking news, deep-dive feature stories, and global event tracking straight to your screen.
-        </p>
-      </div>
 
-      <div class="space-y-3">
-        <h4 class="text-sm font-semibold text-slate-200">Categories</h4>
-        <ul class="text-xs space-y-2">
-          <li><a href="#" class="hover:text-teal-400 transition-colors">World News</a></li>
-          <li><a href="#" class="hover:text-teal-400 transition-colors">Technology</a></li>
-          <li><a href="#" class="hover:text-teal-400 transition-colors">Business</a></li>
-        </ul>
-      </div>
+        <!-- Navigation -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold tracking-widest text-gray-900">SECTIONS</h4>
+          <ul class="text-sm space-y-2 text-gray-700">
+            <li><NuxtLink to="/" class="hover:text-red-700 transition-colors">Home</NuxtLink></li>
+            <li><NuxtLink to="/about" class="hover:text-red-700 transition-colors">About</NuxtLink></li>
+            <li><NuxtLink to="/contact" class="hover:text-red-700 transition-colors">Contact</NuxtLink></li>
+            <li><a href="#" class="hover:text-red-700 transition-colors">Archives</a></li>
+          </ul>
+        </div>
 
-      <div class="space-y-3">
-        <h4 class="text-sm font-semibold text-slate-200">Stay Updated</h4>
-        <div class="flex gap-2">
-          <input 
-            type="email" 
-            placeholder="Enter your email" 
-            class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-400 w-full"
-          />
-          <button class="bg-teal-400 hover:bg-teal-500 text-slate-900 font-medium text-xs px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap">
-            Join
-          </button>
+        <!-- Legal -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold tracking-widest text-gray-900">LEGAL</h4>
+          <ul class="text-sm space-y-2 text-gray-700">
+            <li><a href="#" class="hover:text-red-700 transition-colors">Privacy Policy</a></li>
+            <li><a href="#" class="hover:text-red-700 transition-colors">Terms of Service</a></li>
+            <li><a href="#" class="hover:text-red-700 transition-colors">Advertising</a></li>
+            <li><a href="#" class="hover:text-red-700 transition-colors">Corrections</a></li>
+          </ul>
         </div>
       </div>
 
-    </div>
-
-    <div class="max-w-6xl mx-auto px-6 pt-8 mt-8 border-t border-slate-900 text-center text-xs text-slate-600 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p>&copy; 2026 NewsHub Media Group. All rights reserved.</p>
-      <p class="text-[10px] text-slate-700">Powered by Nuxt & Vercel Analytics</p>
+      <!-- Footer Bottom -->
+      <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-gray-600">&copy; 2026 ATLAS REPORT. All rights reserved.</p>
+        <div class="flex items-center gap-6 text-xs text-gray-600">
+          <a href="#" class="hover:text-gray-900 transition-colors">Twitter</a>
+          <a href="#" class="hover:text-gray-900 transition-colors">LinkedIn</a>
+          <a href="#" class="hover:text-gray-900 transition-colors">RSS</a>
+        </div>
+      </div>
     </div>
   </footer>
 </template>

@@ -1,25 +1,37 @@
 <template>
-  <header class="w-full bg-slate-950/80 backdrop-blur-md border-b border-slate-900 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-      
-      <NuxtLink to="/" class="flex items-center gap-3 group">
-        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-          <span class="text-white font-mono font-bold text-xs">A</span>
+  <header class="w-full bg-white border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex items-center justify-between py-3 text-[11px] uppercase tracking-[0.25em] text-slate-500">
+        <span>{{ today }}</span>
+        <div class="flex items-center gap-6">
+          <NuxtLink to="/about" class="hover:text-slate-900 transition-colors">About</NuxtLink>
+          <NuxtLink to="/contact" class="hover:text-slate-900 transition-colors">Contact</NuxtLink>
+          <NuxtLink to="/" class="font-semibold text-slate-900 hover:text-black transition-colors">Home</NuxtLink>
         </div>
-        <div class="flex flex-col">
-          <span class="text-sm font-sans font-black text-white tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-            ATLAS_REPORT
-          </span>
-          <span class="text-[9px] font-mono text-slate-500 uppercase tracking-widest -mt-0.5">Global Intelligence Feed</span>
-        </div>
-      </NuxtLink>
+      </div>
 
-      <nav class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
-        <NuxtLink to="/" class="text-slate-400 hover:text-white transition-all px-3 py-1.5 rounded-lg" active-class="bg-slate-900 text-violet-400 border border-slate-800">News Platform</NuxtLink>
-        <NuxtLink to="/about" class="text-slate-400 hover:text-white transition-all px-3 py-1.5 rounded-lg" active-class="bg-slate-900 text-violet-400 border border-slate-800">About</NuxtLink>
-        <NuxtLink to="/contact" class="text-slate-400 hover:text-white transition-all px-3 py-1.5 rounded-lg" active-class="bg-slate-900 text-violet-400 border border-slate-800">Contact</NuxtLink>
+      <div class="flex flex-col items-center py-6">
+        <NuxtLink to="/" class="font-serif text-4xl md:text-5xl font-black tracking-[0.08em] text-slate-900">ATLAS REPORT</NuxtLink>
+        <p class="mt-2 text-xs uppercase tracking-[0.35em] text-slate-500">Global Intelligence Feed</p>
+      </div>
+
+      <nav class="flex flex-wrap justify-center gap-4 border-t border-slate-200 pt-4 pb-5 text-xs uppercase tracking-[0.2em] text-slate-600">
+        <a href="#" class="hover:text-slate-900 transition-colors">World</a>
+        <a href="#" class="hover:text-slate-900 transition-colors">U.S.</a>
+        <a href="#" class="hover:text-slate-900 transition-colors">Politics</a>
+        <a href="#" class="hover:text-slate-900 transition-colors">Business</a>
+        <a href="#" class="hover:text-slate-900 transition-colors">Opinion</a>
+        <a href="#" class="hover:text-slate-900 transition-colors">Science</a>
       </nav>
-
     </div>
   </header>
 </template>
+
+<script setup>
+const today = new Date().toLocaleDateString(undefined, {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric'
+})
+</script>

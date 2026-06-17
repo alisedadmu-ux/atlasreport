@@ -1,43 +1,5 @@
 <template>
   <div class="news-portal-container">
-    
-    <div class="breaking-ticker">
-      <span class="ticker-badge">FLASH</span>
-      <p class="ticker-text">Live global updates rolling out across premium intelligence sectors...</p>
-    </div>
-
-    <header class="portal-header">
-      <div class="header-brand-zone">
-        <p class="header-date">{{ currentFormattedDate }}</p>
-        <h1 class="portal-logo">ATLAS REPORT</h1>
-        <p class="header-edition">GLOBAL INTELLIGENCE FEED</p>
-      </div>
-
-      <nav class="portal-nav">
-        <div class="primary-nav-links">
-          <button 
-            :class="{ active: activeTab === 'feed' }"
-            @click="activeTab = 'feed'; selectedArticle = null"
-          >
-            📰 Intelligence Feed
-          </button>
-
-          <button 
-            v-if="selectedArticle" 
-            :class="{ active: activeTab === 'article' }"
-            @click="activeTab = 'article'"
-          >
-            📄 Reading Desk
-          </button>
-        </div>
-
-        <div class="utility-nav-links">
-          <NuxtLink to="/about" class="util-link">About</NuxtLink>
-          <NuxtLink to="/contact" class="util-link">Contact</NuxtLink>
-        </div>
-      </nav>
-    </header>
-
     <main v-if="activeTab === 'feed'" class="portal-layout">
       
       <div class="category-filter-bar">
@@ -146,10 +108,6 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-
-definePageMeta({
-  layout: false
-})
 
 // Navigation tabs tracker
 const activeTab = ref('feed') // Can be 'feed' or 'article'
