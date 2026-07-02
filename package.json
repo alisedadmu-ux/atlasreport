@@ -11,13 +11,14 @@
     "install": "npm install --legacy-peer-deps"
   },
   "dependencies": {
+    "@nuxtjs/supabase": "^2.0.9",
     "@vercel/analytics": "^2.0.1",
     "autoprefixer": "^10.5.0",
     "nuxt": "^4.4.6",
     "nuxt-vercel-analytics": "^0.1.2",
+    "rss-parser": "^3.13.0",
     "vue": "^3.5.34",
-    "vue-router": "^5.0.7",
-    "@nuxtjs/supabase": "^2.0.9"
+    "vue-router": "^5.0.7"
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.14.0",
