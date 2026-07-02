@@ -36,6 +36,19 @@
         >
           {{ cat.emoji }} {{ cat.name }}
         </button>
+        <div class="ml-auto flex items-center gap-2">
+          <button
+            v-if="isAdmin"
+            @click="fetchLatestNews"
+            :disabled="fetchLoading"
+            class="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-300 text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all disabled:opacity-50"
+          >
+            {{ fetchLoading ? 'Fetching...' : '📡 Fetch News' }}
+          </button>
+          <span v-if="fetchStatus" class="text-[10px] font-semibold" :class="fetchStatus.includes('error') ? 'text-red-500' : 'text-emerald-600'">
+            {{ fetchStatus }}
+          </span>
+        </div>
       </div>
 
       <div class="news-editorial-grid">
@@ -100,6 +113,37 @@ const user = useSupabaseUser()
 const articles = ref([])
 const loading = ref(true)
 const currentCategory = ref('general')
+const fetchStatus = ref('')
+const fetchLoading = ref(false)
+const showFetchButton = ref(false)
+const lastFetchTime = ref('')
+
+// Check if user is admin (you can set your email here)
+const isAdmin = computed(() => {
+  return user.value?.email === 'alisedadmu@example.com' // Change this to your email
+})
+
+const fetchLatestNews = async () => {
+  fetchLoading.value = true
+  fetchStatus.value = ''
+  
+  try {
+    const res = await fetch('/api/fetch-news?key=atlas-rss-secret')
+    const data = await res.json()
+    
+    if (data.success) {
+      fetchStatus.value = data.message
+      await fetchArticles()
+    } else {
+      fetchStatus.value = `error: ${data.error || 'Unknown error'}`
+    }
+  } catch (err) {
+    fetchStatus.value = 'error: Network error'
+  }
+  
+  fetchLoading.value = false
+  setTimeout(() => { fetchStatus.value = '' }, 5000)
+}
 
 const categories = [
   { id: 'general', name: 'World', emoji: '🌍' },

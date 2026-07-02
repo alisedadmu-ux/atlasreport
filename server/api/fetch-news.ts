@@ -1,5 +1,5 @@
 import { defineEventHandler, getQuery } from 'h3'
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 // RSS feed sources mapped to our categories
 const RSS_FEEDS = [
@@ -37,9 +37,15 @@ export default defineEventHandler(async (event) => {
     return { success: false, error: 'Unauthorized' }
   }
 
+  const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NUXT_SUPABASE_SERVICE_KEY
+  
+  if (!supabaseUrl || !serviceKey) {
+    return { success: false, error: 'Missing Supabase service role key. Add SUPABASE_SERVICE_ROLE_KEY to your .env.local' }
+  }
+
   try {
-    // Use Supabase service role client (bypasses RLS)
-    const supabase = await serverSupabaseServiceRole(event)
+    const supabase = createClient(supabaseUrl, serviceKey)
 
     // Dynamic import of rss-parser
     const Parser = (await import('rss-parser')).default
