@@ -1,4 +1,11 @@
+/// <reference types="node" />
+import path from 'path'
+import { fileURLToPath } from 'url'
+import { config as loadEnv } from 'dotenv'
 import tailwindcss from '@tailwindcss/vite'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+loadEnv({ path: path.resolve(__dirname, '.env.local') })
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -9,10 +16,14 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/supabase'
   ],
-  supabase: {
-    url: process.env.SUPABASE_URL,
-    key: process.env.SUPABASE_KEY,
-    redirect: false
+  runtimeConfig: {
+    public: {
+      supabase: {
+        url: process.env.NUXT_PUBLIC_SUPABASE_URL,
+        key: process.env.NUXT_PUBLIC_SUPABASE_KEY,
+        redirect: false
+      }
+    }
   },
   vite: {
     plugins: [

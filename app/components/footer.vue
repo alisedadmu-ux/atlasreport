@@ -19,6 +19,7 @@
             <li><NuxtLink to="/" class="hover:text-red-700 transition-colors">Home</NuxtLink></li>
             <li><NuxtLink to="/about" class="hover:text-red-700 transition-colors">About</NuxtLink></li>
             <li><NuxtLink to="/contact" class="hover:text-red-700 transition-colors">Contact</NuxtLink></li>
+            <li><NuxtLink to="/community" class="hover:text-red-700 transition-colors">Community</NuxtLink></li>
             <li><a href="#" class="hover:text-red-700 transition-colors">Archives</a></li>
           </ul>
         </div>

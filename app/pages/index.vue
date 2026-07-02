@@ -1,6 +1,31 @@
 <template>
   <div class="news-portal-container">
-    <main v-if="activeTab === 'feed'" class="portal-layout">
+    <main class="portal-layout">
+      <section class="homepage-topbar">
+        <div class="topbar-copy">
+          <p class="home-kicker">Member briefing</p>
+          <h1>Stay current with the Atlas Report feed</h1>
+          <p>Follow the latest updates from your newsroom and keep your profile details close at hand.</p>
+        </div>
+
+        <aside class="profile-panel-card" :class="{ 'profile-panel-card-guest': !user }">
+          <div class="profile-panel-header">
+            <div class="profile-panel-avatar">{{ initials }}</div>
+            <div class="profile-panel-meta">
+              <p class="profile-panel-label">{{ user ? 'Signed in reader' : 'Personalize your home' }}</p>
+              <h3>{{ profileName || 'Atlas Reader' }}</h3>
+              <p>{{ user?.email || 'Sign in to unlock the profile side panel.' }}</p>
+            </div>
+          </div>
+
+          <div v-if="user" class="profile-panel-actions">
+            <NuxtLink to="/profile" class="profile-panel-action">Edit profile</NuxtLink>
+            <button class="profile-panel-action secondary" type="button" @click="handleSignOut">Sign out</button>
+          </div>
+
+          <NuxtLink v-else to="/auth" class="profile-panel-action full-width">Sign in</NuxtLink>
+        </aside>
+      </section>
       
       <div class="category-filter-bar">
         <button 
@@ -63,56 +88,18 @@
       </div>
     </main>
 
-    <main v-if="activeTab === 'article' && selectedArticle" class="portal-layout separate-article-view">
-      <div class="article-viewer-frame">
-        
-        <button class="back-dashboard-btn" @click="activeTab = 'feed'">
-          ◀ Return to Main Intelligence Feed
-        </button>
-
-        <header class="article-view-header">
-          <div class="article-view-meta">
-            <span class="meta-badge-source">{{ selectedArticle.author }}</span>
-            <span class="meta-date-stamp">{{ selectedArticle.published }}</span>
-          </div>
-          <h1 class="article-view-title">{{ selectedArticle.title }}</h1>
-        </header>
-
-        <div class="article-hero-wrapper">
-          <img :src="selectedArticle.image" alt="Full Report Feature Banner" class="article-view-img" />
-        </div>
-
-        <div class="article-view-body">
-          <p class="editorial-lead-para">{{ selectedArticle.description }}</p>
-          
-          <div class="editorial-deep-analysis">
-            <h3>📊 Internal Analytical Context Briefing</h3>
-            <p v-for="(para, idx) in extendedParagraphs" :key="idx">
-              {{ para }}
-            </p>
-          </div>
-        </div>
-
-        <footer class="article-view-footer">
-          <p class="verification-notice">🛡️ Verified Source Entry • Distributed via Atlas Report Desk</p>
-          <button class="footer-back-btn" @click="activeTab = 'feed'">
-            Return to Dashboard
-          </button>
-        </footer>
-
-      </div>
-    </main>
-
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
-// Navigation tabs tracker
-const activeTab = ref('feed') // Can be 'feed' or 'article'
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+
+const articles = ref([])
+const loading = ref(true)
 const currentCategory = ref('general')
-const selectedArticle = ref(null)
 
 const categories = [
   { id: 'general', name: 'World', emoji: '🌍' },
@@ -127,161 +114,71 @@ const currentFormattedDate = computed(() => {
   return new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()
 })
 
-const staticDatabase = [
-  // --- GENERAL / WORLD ---
-  {
-    category: 'general',
-    title: 'Global Summit Outlines Structural Architecture for Clean Energy Distribution Across Transit Corridors',
-    description: 'International delegations assembled in Geneva to finalize the global standard framework targeting logistics grids, sustainable supply corridors, and clean manufacturing ecosystems.',
-    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800',
-    author: 'Reuters Desk',
-    published: 'June 16, 2026'
-  },
-  {
-    category: 'general',
-    title: 'Deep Maritime Exploration Teams Uncover Submerged Geothermal Vents Near Atlantic Ridge',
-    description: 'Oceanographic researchers mapping deep abyssal zones confirm the location of previously undocumented active thermal networks hosting unique ecosystems.',
-    image: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?q=80&w=800',
-    author: 'Associated Press',
-    published: 'June 16, 2026'
-  },
-  {
-    category: 'general',
-    title: 'Metropolitan Infrastructure Projects Test High-Capacity Smart Grids to Minimize Power Fluctuations',
-    description: 'Urban planning committees deploy predictive power flow networks to dynamically balance grid load across massive residential districts.',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800',
-    author: 'Global Bureau',
-    published: 'June 15, 2026'
-  },
-  {
-    category: 'general',
-    title: 'Global Shipping Consortia Implement Rerouting Protocols to Optimize Transit Schedules',
-    description: 'International freight companies shift tracking coordinates across major oceanic channels to minimize fuel burn and coordinate container drops.',
-    image: 'https://images.unsplash.com/photo-1494412519320-aa613dfb7738?q=80&w=800',
-    author: 'Maritime Press',
-    published: 'June 15, 2026'
-  },
-  {
-    category: 'general',
-    title: 'Agricultural Engineering Networks Release Comprehensive Soil Viability Mapping Database',
-    description: 'Agronomists compile large-scale datasets detailing micro-nutrient properties across continuous cultivation belts to assist precision farming operations.',
-    image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=800',
-    author: 'Nature Desk',
-    published: 'June 14, 2026'
-  },
-
-  // --- TECHNOLOGY ---
-  {
-    category: 'technology',
-    title: 'Quantum Compute Clusters Demonstrate Quantum Superiority in Structural Engine Matrix Computations',
-    description: 'Hardware developers achieve computational stability across custom silicon arrays, safely rendering sub-atomic simulation algorithms in record speed.',
-    image: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=800',
-    author: 'Tech Intelligence',
-    published: 'June 16, 2026'
-  },
-  {
-    category: 'technology',
-    title: 'Open-Source Database Maintainers Roll Out Cryptographic Architecture Patch to Prevent Grid Leaks',
-    description: 'Security leads release localized updates securing multi-tenant ledger setups against distributed dictionary probing attempts.',
-    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800',
-    author: 'Cyber Review',
-    published: 'June 16, 2026'
-  },
-  {
-    category: 'technology',
-    title: 'Solid-State Battery Architectures Match Lithium Ion Energy Density Benchmarks During Long Tests',
-    description: 'Lab teams showcase non-volatile solid electrolyte storage frames capable of maintaining charge across 5,000 continuous hardware cycles.',
-    image: 'https://images.unsplash.com/photo-1558441719-ff34b0524a24?q=80&w=800',
-    author: 'Hardware Feed',
-    published: 'June 15, 2026'
-  },
-  {
-    category: 'technology',
-    title: 'Edge Router Framework Updates Achieve Single-Digit Latency in Localized Smart-Home Ecosystems',
-    description: 'Wireless protocols successfully sync multi-device sensors using integrated localized radio chips without hitting standard cloud pipelines.',
-    image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=800',
-    author: 'Network World',
-    published: 'June 14, 2026'
-  },
-
-  // --- SPORTS ---
-  {
-    category: 'sports',
-    title: 'International Racing Circuits Redesign High-Velocity Curves Following Advanced Computational Modeling',
-    description: 'Aerodynamic engineers adjust mechanical asphalt compositions and barrier angles to balance vehicle safety with high-speed competitive friction.',
-    image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=800',
-    author: 'Circuit Desk',
-    published: 'June 16, 2026'
-  },
-  {
-    category: 'sports',
-    title: 'Global Football Analytics Agency Tracks Real-Time Spatial Tracking Patterns in Championship Matchups',
-    description: 'Wearable sensor metrics gather precise telemetry data measuring mechanical velocity and acceleration curves of prime championship athletes.',
-    image: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=800',
-    author: 'Athletic Metrics',
-    published: 'June 15, 2026'
-  },
-
-  // --- SCIENCE ---
-  {
-    category: 'science',
-    title: 'Orbital Observatories Transmit Deep-Field Core Visuals Detailing Stellar Nurseries Near Perseus Arm',
-    description: 'Spectroscopic instrumentation parses heavy infrared layers to locate early protostar gas configurations moving within high-density cosmic waves.',
-    image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=800',
-    author: 'Astro Review',
-    published: 'June 16, 2026'
-  },
-  {
-    category: 'science',
-    title: 'Synthetic Biologists Successfully Construct Enzymes Capable of Breaking Down Rigid Industrial Composites',
-    description: 'Laboratory groups isolate a stable protein alignment that isolates and metabolizes high-density polymer compounds in room temperature environments.',
-    image: 'https://images.unsplash.com/photo-1532187863486-abf9d39d6618?q=80&w=800',
-    author: 'Science Daily',
-    published: 'June 16, 2026'
-  },
-
-  // --- BUSINESS ---
-  {
-    category: 'business',
-    title: 'Logistics Software Mergers Re-Index Standard Cargo Delivery Values Across Northern Channels',
-    description: 'Enterprise integration platforms combine operations, standardizing automated maritime manifest validation across major deepwater shipping ports.',
-    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800',
-    author: 'Financial Press',
-    published: 'June 16, 2026'
-  },
-
-  // --- HEALTH ---
-  {
-    category: 'health',
-    title: 'High-Resolution Protein Structure Mapping Pinpoints Vulnerable Entry Mechanisms in Viral Coats',
-    description: 'Microscopic scanning arrays help research networks trace the spatial geometry of outer membrane tags to plan tailored preventive blocking techniques.',
-    image: 'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=800',
-    author: 'Medical Network',
-    published: 'June 16, 2026'
-  }
-]
-
-const extendedParagraphs = [
-  "This unfolding story highlights a key shift in current international trends, signaling rapid changes across both local industries and global markets. Analysts note that tactical adjustments being deployed today will likely dictate resource distribution over the next fiscal decade.",
-  "Historically, comparable occurrences faced heavy systemic bottlenecks; however, modern technological infrastructure and fluid asset communication networks are allowing updates to propagate across consumer brackets seamlessly.",
-  "Industry headers are urging caution among retail adapters, noting that volatile consumer responses can sometimes distort primary analytical projections. Operational frameworks must remain completely agile to insulate against collateral macro-market dips.",
-  "As full field disclosures continue to develop over the upcoming hours, field teams remain highly focused on regulatory reviews. Follow-up investigations are scheduled to verify standard long-term resilience frameworks across active nodes."
-]
-
-const filteredArticles = computed(() => {
-  return staticDatabase.filter(art => art.category === currentCategory.value)
+const profileName = computed(() => user.value?.user_metadata?.display_name || user.value?.user_metadata?.full_name || '')
+const initials = computed(() => {
+  const label = profileName.value || user.value?.email || 'AR'
+  return label
+    .split(/[ @._-]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('')
 })
 
+const filteredArticles = computed(() => {
+  return articles.value.filter(art => art.category === currentCategory.value)
+})
+
+const fetchArticles = async () => {
+  loading.value = true
+  const { data, error } = await supabase
+    .from('articles')
+    .select('*')
+    .order('published', { ascending: false })
+
+  if (!error && data) {
+    articles.value = data
+  }
+  loading.value = false
+}
+
 const viewFullArticle = (article) => {
-  selectedArticle.value = article
-  activeTab.value = 'article' // Smooth switch to separate tab view
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  navigateTo(`/news/${article.id}`)
 }
 
 const truncateText = (text, maxLen) => {
   if (!text) return ''
   return text.length > maxLen ? text.substring(0, maxLen) + '...' : text
 }
+
+const handleSignOut = async () => {
+  await supabase.auth.signOut()
+  await navigateTo('/auth')
+}
+
+// Real-time subscription for articles
+let subscription = null
+
+onMounted(async () => {
+  await fetchArticles()
+
+  subscription = supabase
+    .channel('articles-feed')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'articles'
+    }, async () => {
+      await fetchArticles()
+    })
+    .subscribe()
+})
+
+onBeforeUnmount(() => {
+  if (subscription) {
+    supabase.removeChannel(subscription)
+  }
+})
 </script>
 
 <style scoped>
@@ -292,6 +189,115 @@ const truncateText = (text, maxLen) => {
   font-family: 'Plus Jakarta Sans', sans-serif;
   min-height: 100vh;
   color: #111111;
+}
+
+/* HOMEPAGE PROFILE PANEL */
+.homepage-topbar {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1.3fr 0.7fr;
+  align-items: stretch;
+  margin-bottom: 2rem;
+}
+.topbar-copy {
+  border: 1px solid #e5e5e5;
+  background: linear-gradient(135deg, #fffdf8 0%, #f7f1e7 100%);
+  padding: 2rem;
+}
+.topbar-copy h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0.6rem 0 0.8rem;
+}
+.topbar-copy p {
+  margin: 0;
+  color: #555555;
+  line-height: 1.6;
+}
+.home-kicker {
+  color: #a30000;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.profile-panel-card {
+  border: 1px solid #e5e5e5;
+  background: #ffffff;
+  padding: 1.4rem;
+  box-shadow: 0 10px 30px rgba(17, 17, 17, 0.05);
+}
+.profile-panel-card-guest {
+  background: #f7f3ea;
+}
+.profile-panel-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.profile-panel-avatar {
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #111111;
+  color: white;
+  font-weight: 800;
+  font-size: 1rem;
+}
+.profile-panel-meta h3 {
+  margin: 0.2rem 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+.profile-panel-meta p {
+  margin: 0;
+  color: #666666;
+  font-size: 0.9rem;
+}
+.profile-panel-label {
+  color: #a30000;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.profile-panel-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.2rem;
+}
+.profile-panel-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: 1px solid #d7d7d7;
+  background: #111111;
+  color: white;
+  border-radius: 999px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+.profile-panel-action:hover {
+  background: #a30000;
+}
+.profile-panel-action.secondary {
+  background: #ffffff;
+  color: #111111;
+}
+.profile-panel-action.secondary:hover {
+  background: #f4f1ea;
+}
+.profile-panel-action.full-width {
+  margin-top: 1.2rem;
 }
 
 /* BREAKING TICKER */
@@ -459,30 +465,5 @@ const truncateText = (text, maxLen) => {
 .bulletin-title { font-size: 0.95rem; font-weight: 700; line-height: 1.4; }
 .bulletin-source { font-size: 0.75rem; color: #777777; font-weight: 600; display: block; margin-top: 0.25rem; }
 
-/* NATIVE SEPARATE ARTICLE VIEW (STAYS ON SITE) */
-.separate-article-view {
-  display: flex; justify-content: center; background: #fcfbf7; padding: 3rem 2rem;
-}
-.article-viewer-frame { width: 100%; max-width: 800px; background: #ffffff; border: 1px solid #e5e5e5; padding: 4rem; }
-.back-dashboard-btn {
-  background: #111111; color: white; border: none; padding: 0.6rem 1.2rem;
-  font-family: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-bottom: 2.5rem;
-}
-.back-dashboard-btn:hover { background: #a30000; }
-.article-view-header { border-bottom: 1px solid #e5e5e5; padding-bottom: 1.5rem; margin-bottom: 2rem; }
-.article-view-meta { display: flex; gap: 1.5rem; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; }
-.meta-badge-source { color: #a30000; text-transform: uppercase; }
-.meta-date-stamp { color: #666666; }
-.article-view-title { font-family: 'Playfair Display', serif; font-size: 2.6rem; font-weight: 700; line-height: 1.2; color: #111111; }
-.article-hero-wrapper { width: 100%; height: 420px; overflow: hidden; margin-bottom: 2.5rem; }
-.article-view-img { width: 100%; height: 100%; object-fit: cover; }
-.article-view-body { font-size: 1.1rem; line-height: 1.8; color: #222222; }
-.editorial-lead-para { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-style: italic; line-height: 1.5; color: #333333; margin-bottom: 2rem; border-left: 4px solid #a30000; padding-left: 1.5rem; }
-.editorial-deep-analysis { background: #fdfcf9; border: 1px solid #e5e5e5; padding: 2rem; border-top: 3px solid #111111; margin-top: 3rem; }
-.editorial-deep-analysis h3 { font-family: 'Cinzel', serif; font-size: 1.1rem; margin-bottom: 1.25rem; }
-.editorial-deep-analysis p { font-size: 1rem; margin-bottom: 1rem; color: #444444; }
-.article-view-footer { margin-top: 4rem; border-top: 1px solid #e5e5e5; padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; }
-.verification-notice { font-size: 0.8rem; font-weight: 700; color: #888888; }
-.footer-back-btn { background: none; border: 1px solid #111111; color: #111111; padding: 0.6rem 1.2rem; font-family: inherit; font-weight: 700; cursor: pointer; }
-.footer-back-btn:hover { background: #f4f1ea; }
+/* (dead CSS removed - article viewer moved to /news/[id]) */
 </style>

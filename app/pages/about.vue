@@ -1,16 +1,5 @@
 <template>
   <div class="news-portal-container">
-    <nav class="portal-nav">
-      <div class="primary-nav-links">
-        <NuxtLink to="/" class="nav-brand-link">◀ ATLAS REPORT</NuxtLink>
-      </div>
-      <div class="utility-nav-links">
-        <NuxtLink to="/" class="util-link">Home Dashboard</NuxtLink>
-        <NuxtLink to="/about" class="util-link active">About</NuxtLink>
-        <NuxtLink to="/contact" class="util-link">Contact</NuxtLink>
-      </div>
-    </nav>
-
     <main class="portal-layout">
       <div class="editorial-card">
         <span class="section-badge">OUR MISSION</span>
@@ -35,9 +24,6 @@
 </template>
 
 <script setup>
-definePageMeta({
-  layout: false
-})
 </script>
 
 <style scoped>
@@ -48,31 +34,6 @@ definePageMeta({
   font-family: 'Plus Jakarta Sans', sans-serif;
   min-height: 100vh;
   color: #111111;
-}
-.portal-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e5e5e5;
-  margin: 0 2rem;
-}
-.nav-brand-link {
-  font-family: 'Cinzel', serif;
-  text-decoration: none;
-  color: #a30000;
-  font-weight: 800;
-  font-size: 1.1rem;
-}
-.util-link {
-  text-decoration: none;
-  color: #666666;
-  font-size: 0.9rem;
-  margin-left: 1.5rem;
-  font-weight: 600;
-}
-.util-link.active {
-  color: #a30000;
 }
 .portal-layout {
   padding: 3rem 2rem;

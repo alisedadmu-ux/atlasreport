@@ -1,16 +1,5 @@
 <template>
   <div class="news-portal-container">
-    <nav class="portal-nav">
-      <div class="primary-nav-links">
-        <NuxtLink to="/" class="nav-brand-link">◀ ATLAS REPORT</NuxtLink>
-      </div>
-      <div class="utility-nav-links">
-        <NuxtLink to="/" class="util-link">Home Dashboard</NuxtLink>
-        <NuxtLink to="/about" class="util-link">About</NuxtLink>
-        <NuxtLink to="/contact" class="util-link active">Contact</NuxtLink>
-      </div>
-    </nav>
-
     <main class="portal-layout">
       <div class="editorial-card">
         <span class="section-badge">CORRESPONDENCE</span>
@@ -33,9 +22,12 @@
             <textarea id="message" v-model="form.message" rows="5" placeholder="Type your message here..." required></textarea>
           </div>
 
-          <button type="submit" class="submit-btn">Submit Dispatch ➔</button>
+          <button type="submit" class="submit-btn" :disabled="loading">
+            {{ loading ? 'Sending…' : 'Submit Dispatch ➔' }}
+          </button>
         </form>
         <p v-if="submitted" class="success-msg">✅ Dispatch received. Our team will review your message shortly.</p>
+        <p v-if="error" class="error-msg">⚠️ {{ error }}</p>
       </div>
     </main>
   </div>
@@ -44,16 +36,44 @@
 <script setup>
 import { ref } from 'vue'
 
-definePageMeta({
-  layout: false
-})
-
 const form = ref({ name: '', email: '', message: '' })
 const submitted = ref(false)
+const loading = ref(false)
+const error = ref('')
+const supabase = useSupabaseClient()
 
-const handleSubmit = () => {
-  submitted.value = true
-  form.value = { name: '', email: '', message: '' }
+const handleSubmit = async () => {
+  submitted.value = false
+  error.value = ''
+  loading.value = true
+
+  try {
+    const { error: supabaseError } = await supabase
+      .from('contacts')
+      .insert({
+        name: form.value.name,
+        email: form.value.email,
+        message: form.value.message
+      })
+
+    if (supabaseError) {
+      // If the contacts table doesn't exist, show a friendly fallback
+      if (supabaseError.message?.includes('relation') || supabaseError.code === '42P01') {
+        error.value = 'The contact form is not yet configured. Please email us directly at team@atlasreport.com.'
+      } else {
+        error.value = supabaseError.message
+      }
+      loading.value = false
+      return
+    }
+
+    submitted.value = true
+    form.value = { name: '', email: '', message: '' }
+  } catch (e) {
+    error.value = 'An unexpected error occurred. Please try again later.'
+  }
+
+  loading.value = false
 }
 </script>
 
@@ -65,31 +85,6 @@ const handleSubmit = () => {
   font-family: 'Plus Jakarta Sans', sans-serif;
   min-height: 100vh;
   color: #111111;
-}
-.portal-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e5e5e5;
-  margin: 0 2rem;
-}
-.nav-brand-link {
-  font-family: 'Cinzel', serif;
-  text-decoration: none;
-  color: #a30000;
-  font-weight: 800;
-  font-size: 1.1rem;
-}
-.util-link {
-  text-decoration: none;
-  color: #666666;
-  font-size: 0.9rem;
-  margin-left: 1.5rem;
-  font-weight: 600;
-}
-.util-link.active {
-  color: #a30000;
 }
 .portal-layout {
   padding: 3rem 2rem;

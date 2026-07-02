@@ -1,78 +1,28 @@
-<script setup>
-import { useRoute } from 'vue-router'
-import { computed } from 'vue'
-// Imports the default export from your articles.js file
-import categoriesData from '~/data/articles'
-
-const route = useRoute()
-
-// 1. Loop through the 10 categories to find the topic matching the URL ID
-const resolvedData = computed(() => {
-  const targetId = route.params.id
-  
-  // Make sure the data exists before looping
-  if (!categoriesData || !Array.isArray(categoriesData)) return null
-
-  for (const category of categoriesData) {
-    if (category.topics && Array.isArray(category.topics)) {
-      const foundTopic = category.topics.find(t => t.id === targetId)
-      if (foundTopic) {
-        return {
-          topic: foundTopic,
-          categoryName: category.name
-        }
-      }
-    }
-  }
-  return null
-})
-
-// 2. Map the nested topic keys to the exact flat keys your template uses
-const article = computed(() => {
-  if (!resolvedData.value) return null
-  
-  const t = resolvedData.value.topic
-  
-  // Split the info block into individual lines for paragraphs
-  const allLines = t.info ? t.info.split('\n') : []
-  
-  return {
-    title: t.name || "",
-    category: resolvedData.value.categoryName || "TECH LOG",
-    date: "CORE SYSTEM",
-    image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1000", 
-    lead: allLines[0] || "", // Sets the very first line as your styled lead text
-    paragraphs: allLines,    // Passes the array of lines to your v-for loop
-    summary: `System metadata log tracking active deployments inside the ${t.name} network framework.`
-  }
-})
-</script>
-
 <template>
   <main class="max-w-7xl mx-auto px-4 py-8">
-    <div v-if="!article" class="text-center py-20">
-      <h2 class="text-xl font-bold text-white">SYSTEM ERR: Target Dispatch Absent</h2>
-      <NuxtLink to="/" class="text-teal-400 hover:underline mt-4 inline-block text-xs">&larr; Return to main mainframe index</NuxtLink>
+    <div v-if="loading" class="text-center py-20">
+      <p class="text-slate-400 text-sm">Loading article...</p>
+    </div>
+
+    <div v-else-if="!article" class="text-center py-20">
+      <h2 class="text-xl font-bold text-slate-900">Article not found</h2>
+      <NuxtLink to="/" class="text-red-700 hover:underline mt-4 inline-block text-sm">&larr; Return to home</NuxtLink>
     </div>
 
     <div v-else class="space-y-6">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <NuxtLink to="/" class="text-xs font-bold text-slate-500 hover:text-teal-400 transition-colors inline-flex items-center gap-1">
-          &larr; BACK TO RAW DATA STREAM
-        </NuxtLink>
-        <span class="text-[10px] font-mono text-slate-600 bg-slate-950 border border-slate-900 px-2 py-0.5 rounded">
-          REF_ID: {{ route.params.id.toUpperCase() }}
-        </span>
-      </div>
+      <NuxtLink to="/" class="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-red-700 transition-colors">
+        &larr; Back to feed
+      </NuxtLink>
 
       <div class="space-y-3 max-w-4xl">
         <div class="flex items-center gap-2">
-          <span class="text-[10px] font-extrabold text-slate-950 bg-teal-400 uppercase tracking-widest px-2 py-0.5 rounded">
+          <span class="text-xs font-extrabold text-white bg-slate-900 uppercase tracking-widest px-2 py-0.5 rounded">
             {{ article.category }}
           </span>
-          <span class="text-xs font-mono text-slate-500">Filed at: {{ article.date }}</span>
+          <span class="text-xs text-slate-500">{{ formatDate(article.published) }}</span>
+          <span class="text-xs text-slate-400">by {{ article.author }}</span>
         </div>
-        <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+        <h1 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight font-serif">
           {{ article.title }}
         </h1>
       </div>
@@ -80,64 +30,91 @@ const article = computed(() => {
       <div class="grid lg:grid-cols-3 gap-8">
         
         <div class="lg:col-span-2 space-y-6">
-          <div class="relative h-96 w-full rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
+          <div class="relative h-96 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
             <img :src="article.image" :alt="article.title" class="w-full h-full object-cover" />
           </div>
 
-          <p class="text-base font-semibold text-slate-200 border-l-2 border-teal-400 pl-4 bg-slate-950/40 py-3 pr-3 rounded-r-lg leading-relaxed">
-            {{ article.lead }}
+          <p class="text-base font-semibold text-slate-700 border-l-2 border-red-700 pl-4 bg-slate-50 py-3 pr-3 rounded-r-lg leading-relaxed">
+            {{ article.description }}
           </p>
 
-          <div class="space-y-4 text-slate-400 text-sm leading-relaxed">
-            <p v-for="(paragraph, index) in article.paragraphs" :key="index" class="text-justify">
+          <div class="space-y-4 text-slate-600 text-sm leading-relaxed">
+            <p v-for="(paragraph, index) in article.content" :key="index" class="text-justify">
               {{ paragraph }}
             </p>
           </div>
         </div>
 
         <div class="space-y-4">
-          
-          <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
-            <h4 class="text-xs font-black uppercase text-slate-200 tracking-wider flex items-center gap-1.5 border-b border-slate-900 pb-2">
-              <span class="w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse"></span>
-              Event Context Parameters
+          <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-sm">
+            <h4 class="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-2">
+              Article Details
             </h4>
-            <div class="space-y-2.5 font-mono text-[11px]">
-              <div class="flex justify-between border-b border-slate-900 pb-1.5">
-                <span class="text-slate-600">Reporting Status:</span>
-                <span class="text-green-400 font-bold">VERIFIED SECURE</span>
+            <div class="space-y-2.5 text-xs">
+              <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                <span class="text-slate-500">Category:</span>
+                <span class="text-slate-900 font-semibold uppercase">{{ article.category }}</span>
               </div>
-              <div class="flex justify-between border-b border-slate-900 pb-1.5">
-                <span class="text-slate-600">Primary Domain:</span>
-                <span class="text-slate-300 uppercase font-semibold">{{ article.category }}</span>
-              </div>
-              <div class="flex justify-between border-b border-slate-900 pb-1.5">
-                <span class="text-slate-600">Analysis Complexity:</span>
-                <span class="text-slate-300">Level-4 Advanced Macro</span>
+              <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                <span class="text-slate-500">Published:</span>
+                <span class="text-slate-900">{{ formatDate(article.published) }}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-slate-600">Distribution Target:</span>
-                <span class="text-slate-500">Public Global Access</span>
+                <span class="text-slate-500">Author:</span>
+                <span class="text-slate-900">{{ article.author }}</span>
               </div>
             </div>
           </div>
 
-          <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
-            <h4 class="text-xs font-black uppercase text-slate-200 tracking-wider border-b border-slate-900 pb-2">
-              Executive Abstract
+          <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2 shadow-sm">
+            <h4 class="text-xs font-black uppercase text-slate-700 tracking-wider border-b border-slate-200 pb-2">
+              Summary
             </h4>
-            <p class="text-xs text-slate-400 leading-relaxed font-sans pt-1">
-              {{ article.summary }}
+            <p class="text-xs text-slate-600 leading-relaxed pt-1">
+              {{ article.description }}
             </p>
           </div>
-
-          <div class="bg-slate-900/40 border border-slate-800/60 rounded-xl p-4 text-[11px] text-slate-500 space-y-1">
-            <p class="font-bold text-slate-400">Notice to Terminal Operators:</p>
-            <p class="leading-relaxed">Further changes to these system logs are pushed out automatically across distributed network pipelines every six hours.</p>
-          </div>
-
         </div>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="mt-12 border-t border-slate-200 pt-8">
+        <CommentsSection :article-id="article.id" />
       </div>
     </div>
   </main>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const supabase = useSupabaseClient()
+
+const article = ref(null)
+const loading = ref(true)
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+onMounted(async () => {
+  loading.value = true
+  const { data, error } = await supabase
+    .from('articles')
+    .select('*')
+    .eq('id', route.params.id)
+    .single()
+
+  if (!error && data) {
+    article.value = data
+  }
+  loading.value = false
+})
+</script>
