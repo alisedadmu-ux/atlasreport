@@ -1,6 +1,49 @@
 -- Atlas Report Database Schema
 -- Run this in your Supabase SQL Editor
 
+-- 0. CATEGORIES TABLE (NEW)
+CREATE TABLE IF NOT EXISTS public.categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  emoji TEXT NOT NULL DEFAULT '',
+  slug TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Add missing columns if they don't exist (for tables created before this migration)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'categories' AND column_name = 'emoji') THEN
+    ALTER TABLE public.categories ADD COLUMN emoji TEXT NOT NULL DEFAULT '';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'categories' AND column_name = 'slug') THEN
+    ALTER TABLE public.categories ADD COLUMN slug TEXT;
+  END IF;
+END$$;
+
+-- Delete old rows that have no slug (they were created before the migration)
+DELETE FROM public.categories WHERE slug IS NULL OR slug = '';
+
+-- Add unique constraint on slug if missing
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE table_schema = 'public' AND table_name = 'categories' AND constraint_type = 'UNIQUE' AND constraint_name LIKE '%slug%') THEN
+    ALTER TABLE public.categories ADD UNIQUE (slug);
+  END IF;
+END$$;
+
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'categories' AND policyname = 'Categories are viewable by everyone') THEN
+    CREATE POLICY "Categories are viewable by everyone" ON public.categories FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'categories' AND policyname = 'Categories can be inserted by authenticated users only') THEN
+    CREATE POLICY "Categories can be inserted by authenticated users only" ON public.categories FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+  END IF;
+END$$;
+
 -- 1. ARTICLES TABLE
 CREATE TABLE IF NOT EXISTS public.articles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -16,13 +59,15 @@ CREATE TABLE IF NOT EXISTS public.articles (
 
 ALTER TABLE public.articles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Articles are viewable by everyone" 
-  ON public.articles FOR SELECT 
-  USING (true);
-
-CREATE POLICY "Articles can be inserted by authenticated users only" 
-  ON public.articles FOR INSERT 
-  WITH CHECK (auth.role() = 'authenticated');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'articles' AND policyname = 'Articles are viewable by everyone') THEN
+    CREATE POLICY "Articles are viewable by everyone" ON public.articles FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'articles' AND policyname = 'Articles can be inserted by authenticated users only') THEN
+    CREATE POLICY "Articles can be inserted by authenticated users only" ON public.articles FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+  END IF;
+END$$;
 
 -- 2. COMMENTS TABLE
 CREATE TABLE IF NOT EXISTS public.comments (
@@ -37,21 +82,21 @@ CREATE TABLE IF NOT EXISTS public.comments (
 
 ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Comments are viewable by everyone" 
-  ON public.comments FOR SELECT 
-  USING (true);
-
-CREATE POLICY "Authenticated users can insert comments" 
-  ON public.comments FOR INSERT 
-  WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can update their own comments" 
-  ON public.comments FOR UPDATE 
-  USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can delete their own comments" 
-  ON public.comments FOR DELETE 
-  USING (auth.role() = 'authenticated');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'comments' AND policyname = 'Comments are viewable by everyone') THEN
+    CREATE POLICY "Comments are viewable by everyone" ON public.comments FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'comments' AND policyname = 'Authenticated users can insert comments') THEN
+    CREATE POLICY "Authenticated users can insert comments" ON public.comments FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'comments' AND policyname = 'Users can update their own comments') THEN
+    CREATE POLICY "Users can update their own comments" ON public.comments FOR UPDATE USING (auth.role() = 'authenticated');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'comments' AND policyname = 'Users can delete their own comments') THEN
+    CREATE POLICY "Users can delete their own comments" ON public.comments FOR DELETE USING (auth.role() = 'authenticated');
+  END IF;
+END$$;
 
 -- 3. COMMUNITY POSTS TABLE
 CREATE TABLE IF NOT EXISTS public.community_posts (
@@ -66,28 +111,50 @@ CREATE TABLE IF NOT EXISTS public.community_posts (
 
 ALTER TABLE public.community_posts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Community posts are viewable by everyone" 
-  ON public.community_posts FOR SELECT 
-  USING (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'community_posts' AND policyname = 'Community posts are viewable by everyone') THEN
+    CREATE POLICY "Community posts are viewable by everyone" ON public.community_posts FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'community_posts' AND policyname = 'Authenticated users can create community posts') THEN
+    CREATE POLICY "Authenticated users can create community posts" ON public.community_posts FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'community_posts' AND policyname = 'Users can update their own posts') THEN
+    CREATE POLICY "Users can update their own posts" ON public.community_posts FOR UPDATE USING (auth.role() = 'authenticated');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'community_posts' AND policyname = 'Users can delete their own posts') THEN
+    CREATE POLICY "Users can delete their own posts" ON public.community_posts FOR DELETE USING (auth.role() = 'authenticated');
+  END IF;
+END$$;
 
-CREATE POLICY "Authenticated users can create community posts" 
-  ON public.community_posts FOR INSERT 
-  WITH CHECK (auth.role() = 'authenticated');
+-- 4. ENABLE REALTIME for all tables (skip if already a member)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'categories') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.categories;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'articles') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.articles;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'comments') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.comments;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'community_posts') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.community_posts;
+  END IF;
+END$$;
 
-CREATE POLICY "Users can update their own posts" 
-  ON public.community_posts FOR UPDATE 
-  USING (auth.role() = 'authenticated');
+-- 5. SEED DATA: Insert categories
+INSERT INTO public.categories (name, emoji, slug) VALUES
+  ('World', '🌍', 'general'),
+  ('Tech', '💻', 'technology'),
+  ('Sports', '⚽', 'sports'),
+  ('Science', '🔬', 'science'),
+  ('Business', '📈', 'business'),
+  ('Health', '🏥', 'health')
+ON CONFLICT (slug) DO NOTHING;
 
-CREATE POLICY "Users can delete their own posts" 
-  ON public.community_posts FOR DELETE 
-  USING (auth.role() = 'authenticated');
-
--- 4. ENABLE REALTIME for all tables
-ALTER PUBLICATION supabase_realtime ADD TABLE public.articles;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.comments;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.community_posts;
-
--- 5. SEED DATA: Insert sample articles
+-- 6. SEED DATA: Insert sample articles
 INSERT INTO public.articles (category, title, description, content, image, author) VALUES
 -- General
 ('general', 'Global Summit Outlines Structural Architecture for Clean Energy Distribution Across Transit Corridors', 'International delegations assembled in Geneva to finalize the global standard framework targeting logistics grids, sustainable supply corridors, and clean manufacturing ecosystems.', ARRAY['International delegates gathered this week to finalize a historic agreement on clean energy infrastructure.', 'The framework targets a 40% reduction in transit emissions by 2030 through standardised logistics grids.', 'Key provisions include cross-border energy trading mechanisms and shared sustainability benchmarks.'], 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800', 'Reuters Desk'),
