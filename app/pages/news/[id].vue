@@ -31,14 +31,14 @@
         
         <div class="lg:col-span-2 space-y-6">
           <div class="relative h-96 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
-            <img :src="article.image" :alt="article.title" class="w-full h-full object-cover" />
+            <img :src="article.image" :alt="article.title" class="w-full h-full object-cover" @error="onImageError" />
           </div>
 
           <p class="text-base font-semibold text-slate-700 border-l-2 border-red-700 pl-4 bg-slate-50 py-3 pr-3 rounded-r-lg leading-relaxed">
             {{ article.description }}
           </p>
 
-          <div class="space-y-4 text-slate-600 text-sm leading-relaxed">
+          <div class="space-y-4 text-sm leading-relaxed" :style="{ color: 'var(--color-text-secondary)' }">
             <p v-for="(paragraph, index) in article.content" :key="index" class="text-justify">
               {{ paragraph }}
             </p>
@@ -94,6 +94,25 @@ const supabase = useSupabaseClient()
 
 const article = ref(null)
 const loading = ref(true)
+
+const categoryPlaceholders = {
+  general: { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', emoji: '🌍' },
+  technology: { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', emoji: '💻' },
+  sports: { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', emoji: '⚽' },
+  science: { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', emoji: '🔬' },
+  business: { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', emoji: '📈' },
+  health: { bg: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', emoji: '🏥' }
+}
+
+const onImageError = (event) => {
+  const img = event.target
+  const wrapper = img.closest('.relative')
+  if (wrapper) {
+    const category = article.value?.category || 'general'
+    const ph = categoryPlaceholders[category] || categoryPlaceholders.general
+    wrapper.innerHTML = `<div class="category-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${ph.bg};font-size:4rem;">${ph.emoji}</div>`
+  }
+}
 
 const formatDate = (dateStr) => {
   if (!dateStr) return ''

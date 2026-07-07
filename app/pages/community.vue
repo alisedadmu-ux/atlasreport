@@ -1,10 +1,10 @@
 <template>
-  <div class="max-w-6xl mx-auto px-5 py-10 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto px-5 py-10 sm:px-6 lg:px-8" :style="{ color: 'var(--color-text)' }">
     <!-- Header -->
     <div class="mb-8">
       <p class="text-xs font-bold uppercase tracking-[0.3em] text-red-700">Community</p>
-      <h1 class="mt-3 font-serif text-4xl font-black text-slate-900">Atlas Report Community</h1>
-      <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+      <h1 class="mt-3 font-serif text-4xl font-black" :style="{ color: 'var(--color-text)' }">Atlas Report Community</h1>
+      <p class="mt-3 max-w-2xl text-sm leading-7" :style="{ color: 'var(--color-text-secondary)' }">
         Join the discussion. Share your thoughts, post photos, and connect with fellow readers.
       </p>
     </div>
@@ -101,8 +101,8 @@
       <div class="w-full lg:w-80 shrink-0">
         <div class="sticky top-8 space-y-6">
           <!-- Trending topics -->
-          <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 class="text-sm font-black text-slate-900 mb-4">Trending Topics</h3>
+        <div class="rounded-xl border p-5 shadow-sm" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }">
+          <h3 class="text-sm font-black mb-4" :style="{ color: 'var(--color-text)' }">Trending Topics</h3>
             <div v-if="trendingTopics.length" class="space-y-3">
               <button
                 v-for="topic in trendingTopics"
@@ -117,8 +117,8 @@
           </div>
 
           <!-- Who to follow -->
-          <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 class="text-sm font-black text-slate-900 mb-4">Who to Follow</h3>
+        <div class="rounded-xl border p-5 shadow-sm" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }">
+          <h3 class="text-sm font-black mb-4" :style="{ color: 'var(--color-text)' }">Who to Follow</h3>
             <div v-if="suggestedUsers.length" class="space-y-3">
               <div
                 v-for="user in suggestedUsers"

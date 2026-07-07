@@ -1,10 +1,10 @@
 <template>
-  <div class="news-portal-container">
+  <div class="news-portal-container" :style="{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }">
     <main class="portal-layout">
-      <div class="editorial-card">
+      <div class="editorial-card" :style="{ background: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
         <span class="section-badge">OUR MISSION</span>
         <h1 class="page-title">About Atlas Report</h1>
-        <p class="lead-text">
+        <p class="lead-text" :style="{ color: 'var(--color-text-secondary)' }">
           Atlas Report is an advanced global intelligence feed designed to deliver clean, 
           real-time news insights across key international sectors.
         </p>
@@ -30,10 +30,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Playfair+Display:ital,wght@0,600;0,700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
 
 .news-portal-container {
-  background-color: #fcfbf7;
+  background-color: var(--color-bg);
   font-family: 'Plus Jakarta Sans', sans-serif;
   min-height: 100vh;
-  color: #111111;
+  color: var(--color-text);
 }
 .portal-layout {
   padding: 3rem 2rem;
@@ -42,8 +42,8 @@
 }
 .editorial-card {
   max-width: 700px;
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
   padding: 3rem;
 }
 .section-badge {
@@ -68,7 +68,7 @@
 .content-body p {
   font-size: 1rem;
   line-height: 1.7;
-  color: #555555;
+  color: var(--color-text-secondary);
   margin-bottom: 1rem;
 }
 </style>

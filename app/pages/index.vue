@@ -33,27 +33,42 @@
         </div>
       </div>
 
+      <!-- Load More Button (Pagination) -->
+      <div v-if="filteredArticles.length > 0" class="flex justify-center mb-6">
+        <button
+          @click="toggleShowAll"
+          class="text-xs font-bold uppercase tracking-wider px-6 py-2.5 rounded-full border transition-all"
+          :style="{
+            borderColor: 'var(--color-border)',
+            color: showAll ? 'var(--color-accent)' : 'var(--color-text-muted)',
+            backgroundColor: showAll ? 'rgba(163,0,0,0.05)' : 'transparent'
+          }"
+        >
+          {{ showAll ? 'Show less' : `Show all ${filteredArticles.length} articles` }}
+        </button>
+      </div>
+
       <div class="news-editorial-grid">
 
-        <section v-if="filteredArticles[0]" class="hero-column" @click="viewFullArticle(filteredArticles[0])">
+        <section v-if="visibleArticles[0]" class="hero-column" @click="viewFullArticle(visibleArticles[0])">
           <div class="hero-badge">TOP STORY</div>
           <div class="hero-image-wrapper">
-            <img :src="filteredArticles[0].image" alt="Hero Banner" class="hero-img" />
+            <img :src="visibleArticles[0].image" alt="Hero Banner" class="hero-img" @error="onImageError($event, 'hero')" />
           </div>
-          <h2 class="hero-title">{{ filteredArticles[0].title }}</h2>
-          <p class="hero-snippet">{{ filteredArticles[0].description }}</p>
-          <span class="hero-meta">Reported by {{ filteredArticles[0].author }} — CLICK TO READ</span>
+          <h2 class="hero-title">{{ visibleArticles[0].title }}</h2>
+          <p class="hero-snippet">{{ visibleArticles[0].description }}</p>
+          <span class="hero-meta">Reported by {{ visibleArticles[0].author }} — CLICK TO READ</span>
         </section>
 
         <section class="secondary-column">
           <div
-            v-for="(article, index) in filteredArticles.slice(1, 4)"
+            v-for="(article, index) in visibleArticles.slice(1, 4)"
             :key="index"
             class="secondary-story-card"
             @click="viewFullArticle(article)"
           >
             <div class="secondary-img-wrapper">
-              <img :src="article.image" alt="Story thumbnail" />
+              <img :src="article.image" alt="Story thumbnail" @error="onImageError($event, 'secondary')" />
             </div>
             <div class="secondary-card-text">
               <h3 class="secondary-title">{{ article.title }}</h3>
@@ -66,7 +81,7 @@
           <h4 class="bulletin-heading">Latest Briefs</h4>
           <div class="bulletin-list">
             <div
-              v-for="(article, index) in filteredArticles.slice(4, 9)"
+              v-for="(article, index) in visibleArticles.slice(4, 9)"
               :key="index"
               class="bulletin-item"
               @click="viewFullArticle(article)"
@@ -140,9 +155,21 @@ const currentFormattedDate = computed(() => {
   return new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()
 })
 
+const showAll = ref(false)
+const ARTICLES_PER_PAGE = 9
+
 const filteredArticles = computed(() => {
   return articles.value.filter(art => art.category === currentCategory.value)
 })
+
+const visibleArticles = computed(() => {
+  if (showAll.value) return filteredArticles.value
+  return filteredArticles.value.slice(0, ARTICLES_PER_PAGE)
+})
+
+const toggleShowAll = () => {
+  showAll.value = !showAll.value
+}
 
 const fetchArticles = async () => {
   loading.value = true
@@ -164,6 +191,27 @@ const viewFullArticle = (article) => {
 const truncateText = (text, maxLen) => {
   if (!text) return ''
   return text.length > maxLen ? text.substring(0, maxLen) + '...' : text
+}
+
+const categoryGradients = {
+  general: { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', emoji: '🌍' },
+  technology: { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', emoji: '💻' },
+  sports: { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', emoji: '⚽' },
+  science: { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', emoji: '🔬' },
+  business: { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', emoji: '📈' },
+  health: { bg: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', emoji: '🏥' }
+}
+
+const onImageError = (event, type) => {
+  const img = event.target
+  // Replace the img with a styled gradient placeholder immediately
+  const wrapper = img.closest('.hero-image-wrapper, .secondary-img-wrapper')
+  if (wrapper) {
+    const article = articles.value.find(a => a.image === img.src)
+    const category = article?.category || currentCategory.value
+    const gradient = categoryGradients[category] || categoryGradients.general
+    wrapper.innerHTML = `<div class="category-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${gradient.bg};font-size:${type === 'hero' ? '4rem' : '2.5rem'};">${gradient.emoji}</div>`
+  }
 }
 
 const handleSignOut = async () => {
@@ -200,10 +248,10 @@ onBeforeUnmount(() => {
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 .news-portal-container {
-  background-color: #fcfbf7;
+  background-color: var(--color-bg);
   font-family: 'Plus Jakarta Sans', sans-serif;
   min-height: 100vh;
-  color: #111111;
+  color: var(--color-text);
 }
 
 /* HOMEPAGE TOPBAR */
@@ -215,7 +263,7 @@ onBeforeUnmount(() => {
   margin-bottom: 2rem;
 }
 .topbar-copy {
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--color-border);
   background: linear-gradient(135deg, #fffdf8 0%, #f7f1e7 100%);
   padding: 2rem;
 }
@@ -357,7 +405,7 @@ onBeforeUnmount(() => {
   font-family: 'Playfair Display', serif;
   font-size: 2.2rem; font-weight: 700; line-height: 1.2; margin: 1rem 0;
 }
-.hero-snippet { font-size: 1.05rem; line-height: 1.6; color: #333333; margin-bottom: 1rem; }
+.hero-snippet { font-size: 1.05rem; line-height: 1.6; color: var(--color-text-secondary); margin-bottom: 1rem; }
 .hero-meta { font-size: 0.8rem; font-weight: 700; color: #a30000; text-transform: uppercase; }
 
 /* COLUMN 2: SECONDARY POSTS */
@@ -375,7 +423,7 @@ onBeforeUnmount(() => {
 .secondary-img-wrapper { width: 100%; height: 160px; overflow: hidden; }
 .secondary-story-card img { width: 100%; height: 100%; object-fit: cover; }
 .secondary-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; line-height: 1.3; }
-.secondary-snippet { font-size: 0.9rem; color: #555555; margin-top: 0.25rem; }
+.secondary-snippet { font-size: 0.9rem; color: var(--color-text-secondary); margin-top: 0.25rem; }
 
 /* COLUMN 3: SIDE TICKER BULLETIN LIST */
 .bulletin-column { padding-left: 0.5rem; }
@@ -389,7 +437,7 @@ onBeforeUnmount(() => {
 }
 .bulletin-index { font-size: 1.25rem; font-weight: 800; color: #a30000; }
 .bulletin-title { font-size: 0.95rem; font-weight: 700; line-height: 1.4; }
-.bulletin-source { font-size: 0.75rem; color: #777777; font-weight: 600; display: block; margin-top: 0.25rem; }
+.bulletin-source { font-size: 0.75rem; color: var(--color-text-muted); font-weight: 600; display: block; margin-top: 0.25rem; }
 
 /* (dead CSS removed - article viewer moved to /news/[id]) */
 </style>

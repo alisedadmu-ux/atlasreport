@@ -1,10 +1,10 @@
 <template>
-  <div class="news-portal-container">
+  <div class="news-portal-container" :style="{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }">
     <main class="portal-layout">
-      <div class="editorial-card">
+      <div class="editorial-card" :style="{ background: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
         <span class="section-badge">CORRESPONDENCE</span>
         <h1 class="page-title">Contact Support</h1>
-        <p class="lead-text">Have inquiries or operational feedback? Reach our direct desk below.</p>
+    <p class="lead-text" :style="{ color: 'var(--color-text-secondary)' }">Have inquiries or operational feedback? Reach our direct desk below.</p>
         
         <form @submit.prevent="handleSubmit" class="contact-form">
           <div class="form-group">
@@ -77,14 +77,14 @@ const handleSubmit = async () => {
 }
 </script>
 
-<style scoped>
+  <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Playfair+Display:ital,wght@0,600;0,700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
 
 .news-portal-container {
-  background-color: #fcfbf7;
+  background-color: var(--color-bg);
   font-family: 'Plus Jakarta Sans', sans-serif;
   min-height: 100vh;
-  color: #111111;
+  color: var(--color-text);
 }
 .portal-layout {
   padding: 3rem 2rem;
@@ -108,6 +108,7 @@ const handleSubmit = async () => {
   font-family: 'Playfair Display', serif;
   font-size: 2.5rem;
   margin: 0.5rem 0 1rem;
+  color: var(--color-text);
 }
 .lead-text {
   color: #555555;

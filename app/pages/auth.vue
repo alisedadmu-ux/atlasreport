@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-900">
+  <div class="min-h-screen" :style="{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }">
     <div class="mx-auto max-w-4xl px-6 py-16">
-      <div class="grid gap-10 rounded-2xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/50 lg:grid-cols-[1.15fr_0.85fr] lg:p-10">
+      <div class="grid gap-10 rounded-2xl border p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }">
         <section class="space-y-6">
           <div class="space-y-3">
             <p class="text-sm uppercase tracking-[0.35em] text-slate-500">Atlas Report</p>
@@ -32,7 +32,7 @@
             </button>
           </div>
 
-          <form class="space-y-5 rounded-2xl border border-slate-200 bg-slate-50 p-6" @submit.prevent="handleSubmit">
+          <form class="space-y-5 rounded-2xl border p-6" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-alt)' }" @submit.prevent="handleSubmit">
             <div class="space-y-2">
               <label for="email" class="text-sm font-semibold text-slate-700">Email address</label>
               <input
@@ -64,9 +64,15 @@
             >
               {{ loading ? 'Working...' : mode === 'login' ? 'Sign in' : 'Create account' }}
             </button>
+
+            <div v-if="mode === 'login'" class="text-center mt-3">
+              <NuxtLink to="/forgot-password" class="text-xs font-semibold hover:underline" :style="{ color: 'var(--color-accent, #a30000)' }">
+                Forgot your password?
+              </NuxtLink>
+            </div>
           </form>
 
-          <div class="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <div class="space-y-3 rounded-2xl border p-5" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-alt)' }">
             <p class="text-sm font-semibold text-slate-700">Auth status</p>
             <p class="text-sm text-slate-600">{{ statusMessage }}</p>
             <p v-if="error" class="text-sm font-semibold text-rose-500">{{ error }}</p>
@@ -161,10 +167,10 @@ const handleSubmit = async () => {
       return
     }
 
-    success.value = 'Successfully signed in. Opening your home feed...'
+    success.value = 'Successfully signed in. Opening your profile...'
     form.password = ''
     loading.value = false
-    await navigateTo('/')
+    await navigateTo('/profile')
     return
   }
 

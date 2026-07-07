@@ -51,7 +51,14 @@ export default defineEventHandler(async (event) => {
     const Parser = (await import('rss-parser')).default
     const parser = new Parser({
       timeout: 15000,
-      headers: { 'User-Agent': 'AtlasReport/1.0' }
+      headers: { 'User-Agent': 'AtlasReport/1.0' },
+      customFields: {
+        item: [
+          ['media:content', 'mediaContent', { keepArray: true }],
+          ['media:thumbnail', 'mediaThumbnail', { keepArray: true }],
+          ['media:group', 'mediaGroup', { keepArray: true }],
+        ]
+      }
     })
 
     const results = { total: 0, new: 0, skipped: 0, errors: 0, feedErrors: [] as string[] }
@@ -96,29 +103,54 @@ export default defineEventHandler(async (event) => {
           ? paragraphs.slice(0, 10) 
           : [description.substring(0, 500) || item.title]
 
-        // Extract image
+        // Extract image with custom fields support
         let imageUrl = ''
+        const mediaItem = item as any
+
+        // 1) Check enclosure
         if (item.enclosure?.url?.startsWith('http')) {
           imageUrl = item.enclosure.url
-        }
-        
-        const mediaContent = (item as any)['media:content']
-        if (!imageUrl && mediaContent) {
-          imageUrl = Array.isArray(mediaContent) 
-            ? mediaContent[0]?.$?.url || ''
-            : mediaContent.$?.url || ''
-        }
-
-        if (!imageUrl) {
-          const mediaThumbnail = (item as any)['media:thumbnail']
-          if (mediaThumbnail) {
-            imageUrl = Array.isArray(mediaThumbnail) 
-              ? mediaThumbnail[0]?.$?.url || ''
-              : mediaThumbnail.$?.url || ''
+          // Skip non-image enclosures (e.g. video/*)
+          if (item.enclosure.type && !item.enclosure.type.startsWith('image/')) {
+            imageUrl = ''
           }
         }
 
-        if (!imageUrl) {
+        // 2) Check media:content (now parsed via customFields)
+        if (!imageUrl && mediaItem.mediaContent && mediaItem.mediaContent.length > 0) {
+          const mc = mediaItem.mediaContent[0]
+          const url = mc?.$?.url || (typeof mc === 'string' ? mc : '')
+          // Accept image urls, or any media URL if no type restriction
+          if (url && (!mc?.$?.type || mc?.$?.type.startsWith('image/'))) {
+            imageUrl = url
+          }
+        }
+
+        // 3) Check media:thumbnail (now parsed via customFields)
+        if (!imageUrl && mediaItem.mediaThumbnail && mediaItem.mediaThumbnail.length > 0) {
+          const mt = mediaItem.mediaThumbnail[0]
+          imageUrl = mt?.$?.url || (typeof mt === 'string' ? mt : '')
+        }
+
+        // 4) Check media:group for nested media:content
+        if (!imageUrl && mediaItem.mediaGroup && mediaItem.mediaGroup.length > 0) {
+          const group = mediaItem.mediaGroup[0]
+          if (group?.mediaContent && group.mediaContent.length > 0) {
+            const url = group.mediaContent[0]?.$?.url || ''
+            if (url) imageUrl = url
+          }
+        }
+
+        // 5) Try to extract from content HTML (some feeds embed <img> in content)
+        if (!imageUrl && item.content) {
+          const imgMatch = item.content.match(/<img[^>]+src=["']([^"']+)["']/i)
+          if (imgMatch && imgMatch[1].startsWith('http')) {
+            imageUrl = imgMatch[1]
+          }
+        }
+
+        // 6) Fallback to Unsplash
+        if (!imageUrl || !imageUrl.startsWith('http')) {
           imageUrl = FALLBACK_IMAGES[feed.category] || FALLBACK_IMAGES.general
         }
 

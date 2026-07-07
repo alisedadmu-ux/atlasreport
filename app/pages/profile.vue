@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-950">
+  <div class="min-h-screen" :style="{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }">
     <main class="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-6 lg:grid-cols-[0.35fr_0.65fr] lg:px-8">
       <aside class="space-y-5">
-        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="rounded-lg border p-6 shadow-sm" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }">
           <div class="flex items-center gap-4">
             <div
               class="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg text-2xl font-black text-white"
@@ -12,10 +12,10 @@
             </div>
             <div class="min-w-0">
               <p class="truncate text-lg font-black">{{ form.displayName || 'Atlas Reader' }}</p>
-              <p class="truncate text-sm text-slate-500">{{ user?.email }}</p>
+              <p class="truncate text-sm" :style="{ color: 'var(--color-text-muted)' }">{{ user?.email }}</p>
             </div>
           </div>
-          <p class="mt-5 text-sm leading-6 text-slate-600">{{ form.bio || 'Add a short bio so your dashboard feels more personal.' }}</p>
+          <p class="mt-5 text-sm leading-6" :style="{ color: 'var(--color-text-secondary)' }">{{ form.bio || 'Add a short bio so your dashboard feels more personal.' }}</p>
         </div>
 
         <NuxtLink to="/" class="inline-flex w-full justify-center rounded bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
@@ -26,13 +26,13 @@
       <section class="space-y-6">
         <div>
           <p class="text-xs font-bold uppercase tracking-[0.3em] text-red-700">Profile settings</p>
-          <h1 class="mt-3 font-serif text-4xl font-black">Customize your account</h1>
-          <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+          <h1 class="mt-3 font-serif text-4xl font-black" :style="{ color: 'var(--color-text)' }">Customize your account</h1>
+          <p class="mt-3 max-w-2xl text-sm leading-7" :style="{ color: 'var(--color-text-secondary)' }">
             Change how your profile looks, update your reader details, and set a new password when needed.
           </p>
         </div>
 
-        <form class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm" @submit.prevent="saveProfile">
+        <form class="rounded-lg border p-6 shadow-sm" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }" @submit.prevent="saveProfile">
           <div class="grid gap-5 md:grid-cols-2">
             <label class="space-y-2">
               <span class="text-sm font-bold text-slate-700">Display name</span>
@@ -92,7 +92,7 @@
           </div>
         </form>
 
-        <form class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm" @submit.prevent="changePassword">
+        <form class="rounded-lg border p-6 shadow-sm" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }" @submit.prevent="changePassword">
           <h2 class="font-serif text-2xl font-black">Change password</h2>
           <p class="mt-2 text-sm leading-6 text-slate-600">Choose a new password with at least six characters.</p>
 
@@ -230,14 +230,14 @@ const changePassword = async () => {
 }
 </script>
 
-<style scoped>
+  <style scoped>
 .profile-input {
   width: 100%;
   border-radius: 0.5rem;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
+  border: 1px solid var(--color-input-border);
+  background: var(--color-input-bg);
   padding: 0.85rem 1rem;
-  color: #0f172a;
+  color: var(--color-text);
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
