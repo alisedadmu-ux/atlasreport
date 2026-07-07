@@ -117,7 +117,7 @@ const lastFetchTime = ref('')
 
 // Check if user is admin (you can set your email here)
 const isAdmin = computed(() => {
-  return user.value?.email === 'alisedadmu@example.com' // Change this to your email
+  return user.value?.email === 'alisedadmu@gmail.com' // Change this to your email
 })
 
 const fetchLatestNews = async () => {
