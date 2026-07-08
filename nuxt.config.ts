@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 loadEnv({ path: path.resolve(__dirname, '.env.local') })
+// Also load root .env as a fallback when .env.local is not present
+loadEnv()
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({

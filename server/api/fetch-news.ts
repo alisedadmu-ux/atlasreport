@@ -19,12 +19,12 @@ const RSS_FEEDS = [
 ]
 
 const FALLBACK_IMAGES: Record<string, string> = {
-  general: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800',
-  technology: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=800',
-  sports: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=800',
-  science: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=800',
-  business: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800',
-  health: 'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=80&w=800'
+  general: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=90&w=1600&fm=webp',
+  technology: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?q=90&w=1600&fm=webp',
+  sports: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=90&w=1600&fm=webp',
+  science: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=90&w=1600&fm=webp',
+  business: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=90&w=1600&fm=webp',
+  health: 'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?q=90&w=1600&fm=webp'
 }
 
 export default defineEventHandler(async (event) => {

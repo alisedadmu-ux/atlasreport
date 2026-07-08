@@ -43,18 +43,26 @@
     <p v-if="message" class="mt-2 text-xs font-semibold" :class="messageType === 'error' ? 'text-red-500' : 'text-emerald-600'">
       {{ message }}
     </p>
+
+    <p v-if="showUnsubscribeLink" class="mt-3 text-[10px] text-center" :style="{ color: 'var(--color-text-muted)' }">
+      Already subscribed?
+      <NuxtLink to="/unsubscribe" class="font-bold underline hover:text-red-700 transition-colors">
+        Unsubscribe here
+      </NuxtLink>
+    </p>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
-const supabase = useSupabaseClient()
+import { ref, computed } from 'vue'
 
 const email = ref('')
 const subscribing = ref(false)
 const message = ref('')
 const messageType = ref('')
+const showUnsubscribeLink = computed(() => {
+  return message.value.includes('already subscribed') || message.value.includes('Welcome back')
+})
 
 const handleSubscribe = async () => {
   if (!email.value.trim()) return
@@ -64,25 +72,22 @@ const handleSubscribe = async () => {
   messageType.value = ''
 
   try {
-    const { error } = await supabase
-      .from('newsletter_subscribers')
-      .insert({ email: email.value.trim().toLowerCase() })
+    const res = await fetch('/api/newsletter-subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value.trim() })
+    })
+    const data = await res.json()
 
-    if (error) {
-      if (error.code === '23505') {
-        message.value = 'You\'re already subscribed!'
-        messageType.value = 'success'
-      } else if (error.message?.includes('relation') || error.code === '42P01') {
-        message.value = 'Newsletter is not configured yet. Check back soon!'
-        messageType.value = 'error'
-      } else {
-        message.value = error.message
-        messageType.value = 'error'
+    if (data.success) {
+      message.value = data.message
+      messageType.value = data.message.includes('already') || data.message.includes('Welcome back') ? 'success' : 'success'
+      if (!data.message.includes('already') && !data.message.includes('Welcome back')) {
+        email.value = ''
       }
     } else {
-      message.value = 'Subscribed! Check your inbox for confirmation.'
-      messageType.value = 'success'
-      email.value = ''
+      message.value = data.error || 'Something went wrong. Try again later.'
+      messageType.value = 'error'
     }
   } catch (e) {
     message.value = 'Something went wrong. Try again later.'

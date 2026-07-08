@@ -50,20 +50,38 @@
 
       <div class="news-editorial-grid">
 
-        <section v-if="visibleArticles[0]" class="hero-column" @click="viewFullArticle(visibleArticles[0])">
-          <div class="hero-badge">TOP STORY</div>
-          <div class="hero-image-wrapper">
-            <img :src="visibleArticles[0].image" alt="Hero Banner" class="hero-img" @error="onImageError($event, 'hero')" />
+        <section class="left-column">
+          <div v-if="visibleArticles[0]" class="hero-block" @click="viewFullArticle(visibleArticles[0])">
+            <div class="hero-badge">TOP STORY</div>
+            <div class="hero-image-wrapper">
+              <img :src="visibleArticles[0].image" alt="Hero Banner" class="hero-img" @error="onImageError($event, 'hero')" />
+            </div>
+            <h2 class="hero-title">{{ visibleArticles[0].title }}</h2>
+            <p class="hero-snippet">{{ visibleArticles[0].description }}</p>
+            <span class="hero-meta">Reported by {{ visibleArticles[0].author }} — CLICK TO READ</span>
           </div>
-          <h2 class="hero-title">{{ visibleArticles[0].title }}</h2>
-          <p class="hero-snippet">{{ visibleArticles[0].description }}</p>
-          <span class="hero-meta">Reported by {{ visibleArticles[0].author }} — CLICK TO READ</span>
+          <div class="left-sub-grid">
+            <div
+              v-for="(article, index) in visibleArticles.slice(1, 4)"
+              :key="'left-' + index"
+              class="secondary-story-card"
+              @click="viewFullArticle(article)"
+            >
+              <div class="secondary-img-wrapper">
+                <img :src="article.image" alt="Story thumbnail" @error="onImageError($event, 'secondary')" />
+              </div>
+              <div class="secondary-card-text">
+                <h3 class="secondary-title">{{ article.title }}</h3>
+                <p class="secondary-snippet">{{ truncateText(article.description, 95) }}</p>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <section class="secondary-column">
+        <section class="right-column">
           <div
-            v-for="(article, index) in visibleArticles.slice(1, 4)"
-            :key="index"
+            v-for="(article, index) in visibleArticles.slice(4, 8)"
+            :key="'right-' + index"
             class="secondary-story-card"
             @click="viewFullArticle(article)"
           >
@@ -77,24 +95,27 @@
           </div>
         </section>
 
-        <section class="bulletin-column">
-          <h4 class="bulletin-heading">Latest Briefs</h4>
-          <div class="bulletin-list">
-            <div
-              v-for="(article, index) in visibleArticles.slice(4, 9)"
-              :key="index"
-              class="bulletin-item"
-              @click="viewFullArticle(article)"
-            >
-              <span class="bulletin-index">#{{ index + 5 }}</span>
-              <div class="bulletin-content">
-                <h5 class="bulletin-title">{{ article.title }}</h5>
-                <span class="bulletin-source">{{ article.author }}</span>
-              </div>
+      </div>
+      
+      <!-- Additional articles shown when "Show all" is active -->
+      <div v-if="showAll && visibleArticles.length > ARTICLES_PER_PAGE" class="all-articles-list">
+        <h3 class="all-articles-title">More articles</h3>
+        <div class="all-articles-grid">
+          <div
+            v-for="(article, index) in visibleArticles.slice(ARTICLES_PER_PAGE)"
+            :key="'more-' + article.id"
+            class="more-article-card"
+            @click="viewFullArticle(article)"
+          >
+            <div class="more-img-wrapper">
+              <img :src="article.image" alt="More story" @error="onImageError($event, 'secondary')" />
+            </div>
+            <div class="more-card-text">
+              <h4 class="more-title">{{ article.title }}</h4>
+              <p class="more-snippet">{{ truncateText(article.description, 140) }}</p>
             </div>
           </div>
-        </section>
-
+        </div>
       </div>
     </main>
 
@@ -102,14 +123,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const route = useRoute()
 
 const articles = ref([])
 const loading = ref(true)
-const currentCategory = ref('general')
+const currentCategory = ref(route.query.cat || 'general')
+
+// React to category changes coming from footer links
+watch(() => route.query.cat, (newCat) => {
+  if (newCat) currentCategory.value = newCat
+})
 const fetchStatus = ref('')
 const fetchLoading = ref(false)
 const showFetchButton = ref(false)
@@ -156,7 +184,7 @@ const currentFormattedDate = computed(() => {
 })
 
 const showAll = ref(false)
-const ARTICLES_PER_PAGE = 9
+const ARTICLES_PER_PAGE = 8
 
 const filteredArticles = computed(() => {
   return articles.value.filter(art => art.category === currentCategory.value)
@@ -378,15 +406,20 @@ onBeforeUnmount(() => {
 .portal-layout { padding: 2rem; }
 .news-editorial-grid {
   display: grid;
-  grid-template-columns: 2fr 1.25fr 1fr;
+  grid-template-columns: 2fr 1.25fr;
   gap: 2.5rem;
 }
 
-/* COLUMN 1: HERO TOP STORY */
-.hero-column {
+/* LEFT COLUMN — hero + sub-grid */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.hero-block {
   cursor: pointer;
-  border-right: 1px solid #e5e5e5;
-  padding-right: 2.5rem;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 1.5rem;
 }
 .hero-badge {
   background-color: #111111;
@@ -408,10 +441,16 @@ onBeforeUnmount(() => {
 .hero-snippet { font-size: 1.05rem; line-height: 1.6; color: var(--color-text-secondary); margin-bottom: 1rem; }
 .hero-meta { font-size: 0.8rem; font-weight: 700; color: #a30000; text-transform: uppercase; }
 
-/* COLUMN 2: SECONDARY POSTS */
-.secondary-column {
-  border-right: 1px solid #e5e5e5;
-  padding-right: 2.5rem;
+.left-sub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* RIGHT COLUMN */
+.right-column {
+  border-left: 1px solid #e5e5e5;
+  padding-left: 2.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
@@ -425,19 +464,15 @@ onBeforeUnmount(() => {
 .secondary-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; line-height: 1.3; }
 .secondary-snippet { font-size: 0.9rem; color: var(--color-text-secondary); margin-top: 0.25rem; }
 
-/* COLUMN 3: SIDE TICKER BULLETIN LIST */
-.bulletin-column { padding-left: 0.5rem; }
-.bulletin-heading {
-  font-family: 'Cinzel', serif; border-bottom: 2px solid #111111;
-  padding-bottom: 0.5rem; margin-bottom: 1.25rem; font-size: 1.1rem;
-}
-.bulletin-list { display: flex; flex-direction: column; gap: 1.25rem; }
-.bulletin-item {
-  display: flex; gap: 1rem; cursor: pointer; padding-bottom: 1rem; border-bottom: 1px dashed #dddddd;
-}
-.bulletin-index { font-size: 1.25rem; font-weight: 800; color: #a30000; }
-.bulletin-title { font-size: 0.95rem; font-weight: 700; line-height: 1.4; }
-.bulletin-source { font-size: 0.75rem; color: var(--color-text-muted); font-weight: 600; display: block; margin-top: 0.25rem; }
-
 /* (dead CSS removed - article viewer moved to /news/[id]) */
+
+/* SHOW ALL — additional articles */
+.all-articles-list { margin-top: 2.5rem; border-top: 1px solid #eee; padding-top: 1.5rem; }
+.all-articles-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; margin-bottom: 1rem; }
+.all-articles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem; }
+.more-article-card { cursor: pointer; border: 1px solid #f0f0f0; padding: 0.75rem; display: flex; gap: 0.75rem; align-items: flex-start; background: white; }
+.more-img-wrapper { width: 120px; height: 80px; overflow: hidden; flex: 0 0 120px; }
+.more-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.more-title { font-size: 1rem; margin: 0 0 0.25rem 0; font-weight: 700; }
+.more-snippet { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; }
 </style>

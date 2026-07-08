@@ -18,9 +18,24 @@
           <p class="mt-5 text-sm leading-6" :style="{ color: 'var(--color-text-secondary)' }">{{ form.bio || 'Add a short bio so your dashboard feels more personal.' }}</p>
         </div>
 
-        <NuxtLink to="/" class="inline-flex w-full justify-center rounded bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
-          Back to home
-        </NuxtLink>
+        <div class="space-y-3">
+          <NuxtLink to="/" class="inline-flex w-full justify-center rounded bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
+            Back to home
+          </NuxtLink>
+
+          <!-- Admin: Newsletter Management -->
+          <NuxtLink
+            v-if="user?.email === 'alisedadmu@gmail.com'"
+            to="/admin/newsletter"
+            class="inline-flex w-full items-center justify-center gap-2 rounded border px-4 py-3 text-sm font-bold transition hover:bg-slate-50"
+            :style="{
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text)'
+            }"
+          >
+            📬 Newsletter Management
+          </NuxtLink>
+        </div>
       </aside>
 
       <section class="space-y-6">

@@ -1,57 +1,14 @@
 <template>
   <header :class="['header-shell w-full border-b sticky top-0 z-50', headerVisible ? '' : 'header-hidden']" :style="{ backgroundColor: 'var(--color-header-bg)', borderColor: 'var(--color-border)' }">
     <div class="max-w-7xl mx-auto px-6">
-      <div class="flex items-center justify-between py-3 text-[11px] uppercase tracking-[0.25em]" :style="{ color: 'var(--color-text-muted)' }">
+      <div class="flex items-center justify-between py-3" :style="{ color: 'var(--color-text-muted)' }">
         <NuxtLink to="/"><img src="/images/atlaslogo.png" alt="Atlas Logo" class="h-[150px] w-auto" /></NuxtLink>
-        <div class="flex items-center gap-4">
-          <NuxtLink
-            to="/"
-            :class="['header-nav-link', { 'header-nav-link-active': route.path === '/' }]"
-          >Home</NuxtLink>
-          <NuxtLink
-            to="/about"
-            :class="['header-nav-link', { 'header-nav-link-active': route.path === '/about' }]"
-          >About</NuxtLink>
-          <NuxtLink
-            to="/contact"
-            :class="['header-nav-link', { 'header-nav-link-active': route.path === '/contact' }]"
-          >Contact</NuxtLink>
-          <NuxtLink
-            to="/community"
-            :class="['header-nav-link', { 'header-nav-link-active': route.path === '/community' }]"
-          >Community</NuxtLink>
-          <NuxtLink
-            to="/search"
-            :class="['header-nav-link', { 'header-nav-link-active': route.path === '/search' }]"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-            </svg>
-            Search
-          </NuxtLink>
-          <NuxtLink
-            v-if="user"
-            to="/profile"
-            :class="['header-nav-link', { 'header-nav-link-active': route.path === '/profile' }]"
-          >Profile</NuxtLink>
-          <NuxtLink
-            to="/auth"
-            :class="['header-nav-link', { 'header-nav-link-active': route.path === '/auth' }]"
-          >{{ user ? 'Account' : 'Login' }}</NuxtLink>
-        </div>
       </div>
 
       <div class="flex flex-col items-center py-6">
         <NuxtLink to="/" class="font-serif text-4xl md:text-5xl font-black tracking-[0.08em]" :style="{ color: 'var(--color-text)' }">ATLAS REPORT</NuxtLink>
         <p class="mt-2 text-xs uppercase tracking-[0.35em]" :style="{ color: 'var(--color-text-muted)' }">Global Intelligence Feed</p>
       </div>
-
-      <nav class="flex flex-wrap justify-center gap-4 border-t pt-4 pb-5 text-xs uppercase tracking-[0.2em]" :style="{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }">
-        <NuxtLink to="/search" class="hover:text-slate-900 transition-colors" :style="{ color: 'var(--color-text-muted)' }">All News</NuxtLink>
-        <NuxtLink to="/archives" class="hover:text-slate-900 transition-colors" :style="{ color: 'var(--color-text-muted)' }">Archives</NuxtLink>
-        <NuxtLink to="/community" class="hover:text-slate-900 transition-colors" :style="{ color: 'var(--color-text-muted)' }">Community</NuxtLink>
-        <NuxtLink to="/about" class="hover:text-slate-900 transition-colors" :style="{ color: 'var(--color-text-muted)' }">About</NuxtLink>
-      </nav>
     </div>
   </header>
 </template>
