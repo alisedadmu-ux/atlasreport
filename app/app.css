@@ -23,6 +23,14 @@
 body {
   background-color: #fcfbf7;
   color: #111111;
+  margin: 0;
+}
+
+.news-portal-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ===== Page Transition ===== */
