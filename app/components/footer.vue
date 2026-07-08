@@ -10,8 +10,8 @@
       <div class="grid md:grid-cols-3 gap-12 pb-12 border-b" :style="{ borderColor: 'var(--color-border)' }">
         <!-- Masthead -->
         <div class="space-y-2">
-          <h3 class="font-serif text-2xl font-bold" :style="{ color: 'var(--color-text)' }">ATLAS REPORT</h3>
-          <p class="text-xs tracking-widest font-bold" :style="{ color: 'var(--color-text-muted)' }">GLOBAL INTELLIGENCE FEED</p>
+          <h3 class="font-serif text-2xl font-bold" :style="{ color: 'var(--color-text)' }">Briefing</h3>
+          <p class="text-xs tracking-widest font-bold" :style="{ color: 'var(--color-text-muted)' }">GLOBAL INTELLIGENCE</p>
           <p class="text-sm mt-3 leading-relaxed" :style="{ color: 'var(--color-text-secondary)' }">
             Premium editorial coverage delivering verified reporting across geopolitics, science, and markets.
           </p>
@@ -45,7 +45,7 @@
 
       <!-- Footer Bottom -->
       <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-        <p class="text-xs" :style="{ color: 'var(--color-text-muted)' }">&copy; 2026 ATLAS REPORT. All rights reserved.</p>
+        <p class="text-xs" :style="{ color: 'var(--color-text-muted)' }">&copy; 2026 Briefing. All rights reserved.</p>
         <div class="flex items-center gap-6 text-xs" :style="{ color: 'var(--color-text-muted)' }">
           <a href="#" class="flex items-center gap-1.5 hover:text-gray-900 transition-colors group">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

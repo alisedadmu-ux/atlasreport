@@ -4,7 +4,7 @@
       <section class="homepage-topbar">
         <div class="topbar-copy">
           <p class="home-kicker">Member briefing</p>
-          <h1>Stay current with the Atlas Report feed</h1>
+          <h1>Stay current with the latest briefing</h1>
           <p>Follow the latest updates from your newsroom and keep your profile details close at hand.</p>
         </div>
       </section>
@@ -467,12 +467,78 @@ onBeforeUnmount(() => {
 /* (dead CSS removed - article viewer moved to /news/[id]) */
 
 /* SHOW ALL — additional articles */
-.all-articles-list { margin-top: 2.5rem; border-top: 1px solid #eee; padding-top: 1.5rem; }
-.all-articles-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; margin-bottom: 1rem; }
-.all-articles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem; }
-.more-article-card { cursor: pointer; border: 1px solid #f0f0f0; padding: 0.75rem; display: flex; gap: 0.75rem; align-items: flex-start; background: white; }
-.more-img-wrapper { width: 120px; height: 80px; overflow: hidden; flex: 0 0 120px; }
-.more-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-.more-title { font-size: 1rem; margin: 0 0 0.25rem 0; font-weight: 700; }
-.more-snippet { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; }
+.all-articles-list {
+  margin-top: 2.5rem;
+  border-top: 1px solid #ece8e0;
+  padding-top: 1.75rem;
+}
+.all-articles-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.01em;
+}
+.all-articles-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.more-article-card {
+  cursor: pointer;
+  border: 1px solid #ece8e0;
+  border-radius: 16px;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  background: linear-gradient(180deg, #ffffff 0%, #fcfaf6 100%);
+  box-shadow: 0 8px 20px rgba(17, 17, 17, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.more-article-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(17, 17, 17, 0.08);
+}
+.more-img-wrapper {
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f4f1ea;
+}
+.more-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.more-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.more-title {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.more-snippet {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .more-article-card {
+    grid-template-columns: 1fr;
+    padding: 0.8rem;
+  }
+
+  .more-img-wrapper {
+    height: 150px;
+  }
+}
 </style>

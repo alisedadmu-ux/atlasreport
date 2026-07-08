@@ -1,14 +1,9 @@
 <template>
-  <header :class="['header-shell w-full border-b sticky top-0 z-50', headerVisible ? '' : 'header-hidden']" :style="{ backgroundColor: 'var(--color-header-bg)', borderColor: 'var(--color-border)' }">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="flex items-center justify-between py-3" :style="{ color: 'var(--color-text-muted)' }">
-        <NuxtLink to="/"><img src="/images/atlaslogo.png" alt="Atlas Logo" class="h-[150px] w-auto" /></NuxtLink>
-      </div>
-
-      <div class="flex flex-col items-center py-6">
-        <NuxtLink to="/" class="font-serif text-4xl md:text-5xl font-black tracking-[0.08em]" :style="{ color: 'var(--color-text)' }">ATLAS REPORT</NuxtLink>
-        <p class="mt-2 text-xs uppercase tracking-[0.35em]" :style="{ color: 'var(--color-text-muted)' }">Global Intelligence Feed</p>
-      </div>
+  <header :class="['header-shell sticky top-0 z-50 w-full border-b', headerVisible ? '' : 'header-hidden']" :style="{ backgroundColor: 'var(--color-header-bg)', borderColor: 'var(--color-border)' }">
+    <div class="mx-auto flex max-w-7xl items-center justify-start px-4 py-3 sm:px-6 lg:px-8">
+      <NuxtLink to="/" class="brand-link flex items-center justify-center rounded-full border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md sm:px-5 sm:py-4" aria-label="Home">
+        <img src="/images/atlaslogo.png" alt="Atlas Logo" class="h-16 w-auto sm:h-20 lg:h-24" />
+      </NuxtLink>
     </div>
   </header>
 </template>
@@ -45,11 +40,19 @@ onBeforeUnmount(() => {
 <style scoped>
 .header-shell {
   transition: transform 0.25s ease, opacity 0.25s ease;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 .header-hidden {
   transform: translateY(-100%);
   opacity: 0;
   pointer-events: none;
+}
+.brand-link {
+  border-color: rgba(148, 163, 184, 0.25);
+}
+.dark .brand-link {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(148, 163, 184, 0.25);
 }
 .header-nav-link {
   display: inline-flex;
