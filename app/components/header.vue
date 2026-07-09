@@ -1,9 +1,18 @@
 <template>
   <header :class="['header-shell sticky top-0 z-50 w-full border-b', headerVisible ? '' : 'header-hidden']" :style="{ backgroundColor: 'var(--color-header-bg)', borderColor: 'var(--color-border)' }">
-    <div class="mx-auto flex max-w-7xl items-center justify-start px-4 py-3 sm:px-6 lg:px-8">
-      <NuxtLink to="/" class="brand-link flex items-center justify-center rounded-full border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md sm:px-5 sm:py-4" aria-label="Home">
-        <img src="/images/atlaslogo.png" alt="Atlas Logo" class="h-16 w-auto sm:h-20 lg:h-24" />
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <NuxtLink to="/" class="brand-link flex items-center gap-3 rounded-full bg-white/85 px-3 py-2 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-4 sm:py-3" aria-label="Home">
+        <img src="/images/atlaslogo.png" alt="Atlas Logo" class="h-14 w-auto sm:h-16 lg:h-20" />
+        <div class="hidden sm:flex sm:flex-col">
+          <span class="text-[11px] font-black uppercase tracking-[0.32em] text-slate-700">Atlas Report</span>
+          <span class="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">Independent Briefing</span>
+        </div>
       </NuxtLink>
+
+      <div class="flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/80 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-600 shadow-sm backdrop-blur-xl sm:px-4">
+        <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+        <NuxtLink to="/contact" class="transition-colors hover:text-red-700">Contact</NuxtLink>
+      </div>
     </div>
   </header>
 </template>
@@ -48,11 +57,10 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 .brand-link {
-  border-color: rgba(148, 163, 184, 0.25);
+  border: none;
 }
 .dark .brand-link {
   background: rgba(15, 23, 42, 0.7);
-  border-color: rgba(148, 163, 184, 0.25);
 }
 .header-nav-link {
   display: inline-flex;

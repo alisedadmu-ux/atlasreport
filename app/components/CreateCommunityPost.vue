@@ -235,10 +235,8 @@ const submitPost = async () => {
     try {
       imageUrl = await uploadImage()
     } catch (err) {
-      // Post without the image if upload fails (bucket not created yet)
       console.warn('Image upload failed, posting without image:', err.message)
       postError.value = 'Image upload failed, posted without image. Run the SQL schema to fix this.'
-      // Clear the image so the post goes through
       imageFile.value = null
       imagePreview.value = ''
       if (imageInput.value) imageInput.value.value = ''
@@ -247,36 +245,45 @@ const submitPost = async () => {
 
   const authorName = props.currentUser.user_metadata?.display_name || props.currentUser.user_metadata?.full_name || ''
 
-  const { error } = await supabase
-    .from('community_posts')
-    .insert({
-      user_id: props.currentUser.id,
-      title: newPost.value.title.trim() || '',
-      content: newPost.value.content.trim(),
-      author_name: authorName,
-      author_email: props.currentUser.email,
-      image_url: imageUrl
-    })
+  try {
+    const { error } = await supabase
+      .from('community_posts')
+      .insert({
+        user_id: props.currentUser.id,
+        title: newPost.value.title.trim() || '',
+        content: newPost.value.content.trim(),
+        author_name: authorName,
+        author_email: props.currentUser.email,
+        image_url: imageUrl
+      })
 
-  postLoading.value = false
+    if (error) {
+      if (error.message?.includes('JWT') || error.message?.includes('expired') || error.message?.includes('session')) {
+        postError.value = 'Your session expired. Please sign in again and try posting once more.'
+      } else {
+        postError.value = error.message
+      }
+      return
+    }
 
-  if (error) {
-    postError.value = error.message
-    return
+    postSuccess.value = 'Posted!'
+    newPost.value = { title: '', content: '' }
+    imageFile.value = null
+    imagePreview.value = ''
+    if (imageInput.value) imageInput.value.value = ''
+    expanded.value = false
+
+    emit('post-created')
+
+    setTimeout(() => {
+      postSuccess.value = ''
+    }, 3000)
+  } catch (err) {
+    postError.value = err?.message || 'Unable to post right now. Please try again in a moment.'
+  } finally {
+    postLoading.value = false
   }
 
-  postSuccess.value = 'Posted!'
-  newPost.value = { title: '', content: '' }
-  imageFile.value = null
-  imagePreview.value = ''
-  if (imageInput.value) imageInput.value.value = ''
-  expanded.value = false
-
-  emit('post-created')
-
-  setTimeout(() => {
-    postSuccess.value = ''
-  }, 3000)
 }
 
 const cancelPost = () => {

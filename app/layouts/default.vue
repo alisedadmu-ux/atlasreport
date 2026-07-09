@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col min-h-screen" style="background-color: var(--color-bg);">
+  <div class="site-shell">
     <Header />
-    <main class="flex-1 w-full">
+    <main class="site-main">
       <div class="news-portal-container">
         <slot />
       </div>
@@ -11,3 +11,30 @@
 </template>
 
 <script setup></script>
+
+<style scoped>
+.site-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #fcfbf7 0%, #f7efe2 100%);
+}
+
+.site-main {
+  flex: 1;
+  width: 100%;
+  padding: 0 1rem 3.5rem;
+}
+
+.news-portal-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .site-main {
+    padding: 0 0.8rem 2.5rem;
+  }
+}
+</style>

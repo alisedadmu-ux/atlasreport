@@ -1,19 +1,23 @@
 <template>
-  <div class="max-w-6xl mx-auto px-5 py-10 sm:px-6 lg:px-8" :style="{ color: 'var(--color-text)' }">
-    <!-- Header -->
-    <div class="mb-8">
-      <p class="text-xs font-bold uppercase tracking-[0.3em] text-red-700">Community</p>
-      <h1 class="mt-3 font-serif text-4xl font-black" :style="{ color: 'var(--color-text)' }">Atlas Report Community</h1>
-      <p class="mt-3 max-w-2xl text-sm leading-7" :style="{ color: 'var(--color-text-secondary)' }">
-        Join the discussion. Share your thoughts, post photos, and connect with fellow readers.
-      </p>
-    </div>
+  <div class="community-page">
+    <section class="community-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Community</p>
+        <h1>Atlas Report Community</h1>
+        <p>Join the discussion, share your perspective, and connect with fellow readers in a calm, thoughtful space.</p>
+      </div>
+      <div class="hero-side">
+        <div class="insight-pill">Live conversations</div>
+        <div class="insight-card">
+          <span>Reader-led dialogue</span>
+          <strong>Fresh reactions from the Atlas audience</strong>
+        </div>
+      </div>
+    </section>
 
-    <div class="flex flex-col lg:flex-row gap-8">
-      <!-- Main feed -->
-      <div class="flex-1 min-w-0">
-        <!-- Create post -->
-        <div v-if="currentUser" class="mb-6">
+    <div class="community-grid">
+      <div class="feed-column">
+        <div v-if="currentUser" class="composer-card">
           <CreateCommunityPost
             :currentUser="currentUser"
             :currentUserId="currentUserId"
@@ -21,57 +25,38 @@
           />
         </div>
 
-        <p v-else class="mb-6 text-sm text-slate-500 italic">
-          <NuxtLink to="/auth" class="text-red-700 font-semibold hover:underline">Sign in</NuxtLink> to create a post and join the conversation.
-        </p>
+        <div v-else class="sign-in-card">
+          <p>
+            <NuxtLink to="/auth">Sign in</NuxtLink> to create a post and join the conversation.
+          </p>
+        </div>
 
-        <!-- Feed tabs -->
-        <div class="flex items-center gap-1 mb-6 border-b border-slate-200">
+        <div class="tabs-row">
           <button
             @click="feedTab = 'latest'"
-            class="px-4 py-3 text-sm font-bold transition-colors relative"
-            :class="feedTab === 'latest' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'"
+            :class="feedTab === 'latest' ? 'active' : ''"
           >
             Latest
-            <span v-if="feedTab === 'latest'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"></span>
           </button>
           <button
             @click="feedTab = 'following'"
-            class="px-4 py-3 text-sm font-bold transition-colors relative"
-            :class="feedTab === 'following' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'"
+            :class="feedTab === 'following' ? 'active' : ''"
           >
             Following
-            <span v-if="feedTab === 'following'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"></span>
           </button>
           <button
             @click="feedTab = 'trending'"
-            class="px-4 py-3 text-sm font-bold transition-colors relative"
-            :class="feedTab === 'trending' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'"
+            :class="feedTab === 'trending' ? 'active' : ''"
           >
             Trending
-            <span v-if="feedTab === 'trending'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-full"></span>
           </button>
         </div>
 
-        <!-- Loading state -->
-        <div v-if="loading" class="space-y-4">
-          <div v-for="i in 3" :key="i" class="rounded-xl border border-slate-200 bg-white p-6 animate-pulse">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="h-10 w-10 rounded-full bg-slate-200"></div>
-              <div class="space-y-2">
-                <div class="h-3 w-24 bg-slate-200 rounded"></div>
-                <div class="h-2.5 w-16 bg-slate-200 rounded"></div>
-              </div>
-            </div>
-            <div class="space-y-2">
-              <div class="h-3 w-3/4 bg-slate-200 rounded"></div>
-              <div class="h-3 w-1/2 bg-slate-200 rounded"></div>
-            </div>
-          </div>
+        <div v-if="loading" class="feed-stack">
+          <div v-for="i in 3" :key="i" class="skeleton-card"></div>
         </div>
 
-        <!-- Posts feed -->
-        <div v-else-if="filteredPosts.length" class="space-y-4">
+        <div v-else-if="filteredPosts.length" class="feed-stack">
           <CommunityPostCard
             v-for="post in filteredPosts"
             :key="post.id"
@@ -84,11 +69,11 @@
           />
         </div>
 
-        <div v-else class="text-center py-16">
-          <div class="text-4xl mb-3">📭</div>
-          <p class="text-slate-400 text-sm">
+        <div v-else class="empty-state">
+          <div class="empty-emoji">📭</div>
+          <p>
             <template v-if="feedTab === 'following'">
-              No posts from people you follow yet. Follow some users to see their posts here!
+              No posts from people you follow yet. Follow some users to see their posts here.
             </template>
             <template v-else>
               No community posts yet. Be the first to start a discussion.
@@ -97,86 +82,66 @@
         </div>
       </div>
 
-      <!-- Sidebar -->
-      <div class="w-full lg:w-80 shrink-0">
-        <div class="sticky top-8 space-y-6">
-          <!-- Trending topics -->
-        <div class="rounded-xl border p-5 shadow-sm" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }">
-          <h3 class="text-sm font-black mb-4" :style="{ color: 'var(--color-text)' }">Trending Topics</h3>
-            <div v-if="trendingTopics.length" class="space-y-3">
-              <button
-                v-for="topic in trendingTopics"
-                :key="topic"
-                @click="searchTopic(topic)"
-                class="block w-full text-left text-sm font-semibold text-slate-700 hover:text-red-700 transition-colors truncate"
-              >
-                #{{ topic }}
-              </button>
-            </div>
-            <p v-else class="text-xs text-slate-400">No trending topics yet.</p>
+      <aside class="side-column">
+        <div class="panel-card">
+          <h3>Trending topics</h3>
+          <div v-if="trendingTopics.length" class="topic-list">
+            <button
+              v-for="topic in trendingTopics"
+              :key="topic"
+              @click="searchTopic(topic)"
+            >
+              #{{ topic }}
+            </button>
           </div>
+          <p v-else class="muted">No trending topics yet.</p>
+        </div>
 
-          <!-- Who to follow -->
-        <div class="rounded-xl border p-5 shadow-sm" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }">
-          <h3 class="text-sm font-black mb-4" :style="{ color: 'var(--color-text)' }">Who to Follow</h3>
-            <div v-if="suggestedUsers.length" class="space-y-3">
-              <div
-                v-for="user in suggestedUsers"
-                :key="user.id"
-                class="flex items-center gap-3"
-              >
-                <NuxtLink :to="`/community/profile/${user.user_id}`" class="shrink-0">
-                  <div
-                    class="flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                    :style="{ background: user.color }"
-                  >
-                    {{ getInitials(user.display_name || user.email || 'U') }}
-                  </div>
-                </NuxtLink>
-                <div class="min-w-0 flex-1">
-                  <NuxtLink :to="`/community/profile/${user.user_id}`" class="text-xs font-bold text-slate-900 hover:underline truncate block">
-                    {{ user.display_name || user.email?.split('@')[0] || 'User' }}
-                  </NuxtLink>
-                  <p v-if="user.bio" class="text-[10px] text-slate-400 truncate">{{ user.bio }}</p>
+        <div class="panel-card">
+          <h3>Who to follow</h3>
+          <div v-if="suggestedUsers.length" class="people-list">
+            <div v-for="user in suggestedUsers" :key="user.id" class="person-row">
+              <NuxtLink :to="`/community/profile/${user.user_id}`" class="person-avatar">
+                <div :style="{ background: user.color }">
+                  {{ getInitials(user.display_name || user.email || 'U') }}
                 </div>
-                <button
-                  @click="quickFollow(user.user_id)"
-                  class="text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white transition-all shrink-0"
-                >
-                  Follow
-                </button>
+              </NuxtLink>
+              <div class="person-info">
+                <NuxtLink :to="`/community/profile/${user.user_id}`">
+                  {{ user.display_name || user.email?.split('@')[0] || 'User' }}
+                </NuxtLink>
+                <p v-if="user.bio">{{ user.bio }}</p>
               </div>
+              <button @click="quickFollow(user.user_id)">Follow</button>
             </div>
-            <p v-else class="text-xs text-slate-400">No suggestions yet.</p>
           </div>
+          <p v-else class="muted">No suggestions yet.</p>
+        </div>
 
-          <!-- Stats -->
-          <div v-if="currentUser" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 class="text-sm font-black text-slate-900 mb-3">Your Stats</h3>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="text-center p-2 rounded-lg bg-slate-50">
-                <p class="text-lg font-black text-slate-900">{{ userStats.posts }}</p>
-                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Posts</p>
-              </div>
-              <div class="text-center p-2 rounded-lg bg-slate-50">
-                <p class="text-lg font-black text-slate-900">{{ userStats.followers }}</p>
-                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Followers</p>
-              </div>
-              <div class="text-center p-2 rounded-lg bg-slate-50">
-                <p class="text-lg font-black text-slate-900">{{ userStats.following }}</p>
-                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Following</p>
-              </div>
-              <div class="text-center p-2 rounded-lg bg-slate-50">
-                <p class="text-lg font-black text-slate-900">{{ userStats.likes }}</p>
-                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Likes</p>
-              </div>
+        <div v-if="currentUser" class="panel-card stats-card">
+          <h3>Your stats</h3>
+          <div class="stats-grid">
+            <div>
+              <strong>{{ userStats.posts }}</strong>
+              <span>Posts</span>
+            </div>
+            <div>
+              <strong>{{ userStats.followers }}</strong>
+              <span>Followers</span>
+            </div>
+            <div>
+              <strong>{{ userStats.following }}</strong>
+              <span>Following</span>
+            </div>
+            <div>
+              <strong>{{ userStats.likes }}</strong>
+              <span>Likes</span>
             </div>
           </div>
         </div>
-      </div>
+      </aside>
     </div>
 
-    <!-- Comments Modal -->
     <Teleport to="body">
       <div
         v-if="commentsModalPost"
@@ -185,7 +150,6 @@
       >
         <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" @click="closeCommentsModal"></div>
         <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
-          <!-- Modal header -->
           <div class="flex items-center justify-between p-4 border-b border-slate-200 shrink-0">
             <h3 class="text-sm font-black text-slate-900">Comments</h3>
             <button
@@ -198,7 +162,6 @@
             </button>
           </div>
 
-          <!-- Original post preview -->
           <div class="p-4 border-b border-slate-100 bg-slate-50 shrink-0">
             <div class="flex items-center gap-2 mb-1">
               <div
@@ -212,7 +175,6 @@
             <p class="text-xs text-slate-600 leading-relaxed">{{ commentsModalPost.content }}</p>
           </div>
 
-          <!-- Comments section -->
           <div class="p-4 overflow-y-auto flex-1">
             <PostComments
               :postId="commentsModalPost.id"
@@ -518,3 +480,308 @@ onBeforeUnmount(() => {
   }
 })
 </script>
+
+<style scoped>
+.community-page {
+  padding: 1rem 0 2rem;
+}
+
+.community-hero {
+  display: grid;
+  grid-template-columns: 1.6fr 0.9fr;
+  gap: 1.25rem;
+  padding: 2rem;
+  margin-bottom: 1.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: 32px;
+  background: linear-gradient(135deg, #fffdf8 0%, #f5ebdc 100%);
+  box-shadow: 0 18px 60px rgba(17, 17, 17, 0.05);
+}
+
+.hero-copy h1 {
+  margin: 0.35rem 0 0.7rem;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 1.05;
+  font-weight: 800;
+  color: #111111;
+  font-family: 'Playfair Display', serif;
+}
+
+.hero-copy p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  max-width: 640px;
+}
+
+.eyebrow {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  justify-content: flex-end;
+}
+
+.insight-pill {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.06);
+  color: #222222;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.insight-card {
+  border-radius: 20px;
+  border: 1px solid rgba(232, 224, 212, 0.9);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.insight-card span {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+}
+
+.insight-card strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111111;
+}
+
+.community-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) 320px;
+  gap: 1.2rem;
+}
+
+.feed-column,
+.side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.composer-card,
+.sign-in-card,
+.panel-card,
+.empty-state,
+.skeleton-card {
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(17, 17, 17, 0.04);
+}
+
+.composer-card,
+.sign-in-card,
+.panel-card {
+  padding: 1rem;
+}
+
+.sign-in-card p,
+.muted {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+.sign-in-card a {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.tabs-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.25rem 0;
+}
+
+.tabs-row button {
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--color-text-secondary);
+  padding: 0.6rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabs-row button.active {
+  background: #111111;
+  color: white;
+  border-color: #111111;
+}
+
+.feed-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.skeleton-card {
+  min-height: 160px;
+  padding: 1rem;
+  background: linear-gradient(90deg, #f0e8da 0%, #f8f4ea 50%, #f0e8da 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s infinite;
+}
+
+.empty-state {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.empty-emoji {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.panel-card h3 {
+  margin: 0 0 0.8rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #111111;
+}
+
+.topic-list,
+.people-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.topic-list button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.35rem 0;
+}
+
+.person-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.person-avatar {
+  flex-shrink: 0;
+}
+
+.person-avatar div {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.person-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.person-info a {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #111111;
+}
+
+.person-info p {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.person-row button {
+  border: 1px solid var(--color-border);
+  background: white;
+  color: #111111;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.stats-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  border-radius: 16px;
+  background: #f8f4ea;
+}
+
+.stats-grid strong {
+  font-size: 1rem;
+  color: #111111;
+}
+
+.stats-grid span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-text-muted);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 1024px) {
+  .community-hero,
+  .community-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .community-hero {
+    padding: 1.2rem;
+    border-radius: 22px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+</style>

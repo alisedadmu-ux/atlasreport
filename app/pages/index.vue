@@ -1,65 +1,76 @@
-<template>
-  <div class="news-portal-container">
-    <main class="portal-layout">
-      <section class="homepage-topbar">
-        <div class="topbar-copy">
-          <p class="home-kicker">Member briefing</p>
-          <h1>Stay current with the latest briefing</h1>
-          <p>Follow the latest updates from your newsroom and keep your profile details close at hand.</p>
-        </div>
-      </section>
-
-      <div class="category-filter-bar">
-        <button
-          v-for="cat in categories"
-          :key="cat.id"
-          :class="{ selected: currentCategory === cat.id }"
-          @click="currentCategory = cat.id"
-        >
-          {{ cat.emoji }} {{ cat.name }}
-        </button>
-        <div class="ml-auto flex items-center gap-2">
-          <button
-            v-if="isAdmin"
-            @click="fetchLatestNews"
-            :disabled="fetchLoading"
-            class="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-300 text-slate-600 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all disabled:opacity-50"
-          >
-            {{ fetchLoading ? 'Fetching...' : '📡 Fetch News' }}
-          </button>
-          <span v-if="fetchStatus" class="text-[10px] font-semibold" :class="fetchStatus.includes('error') ? 'text-red-500' : 'text-emerald-600'">
-            {{ fetchStatus }}
-          </span>
+﻿<template>
+  <div class="portal-shell">
+    <section class="hero-intro">
+      <div class="intro-copy">
+        <p class="eyebrow">Member briefing</p>
+        <h1>Stay current with the latest global reporting.</h1>
+        <p>Verified journalism, sharp analysis, and a beautifully paced reading experience designed for modern readers.</p>
+      </div>
+      <div class="intro-aside">
+        <div class="insight-pill">{{ currentFormattedDate }}</div>
+        <div class="insight-card">
+          <span>Live updates</span>
+          <strong>Fresh reporting from Atlas Report</strong>
         </div>
       </div>
+    </section>
 
-      <!-- Load More Button (Pagination) -->
-      <div v-if="filteredArticles.length > 0" class="flex justify-center mb-6">
+    <div class="category-filter-bar">
+      <button
+        v-for="cat in categories"
+        :key="cat.id"
+        :class="{ selected: currentCategory === cat.id }"
+        @click="currentCategory = cat.id"
+      >
+        {{ cat.emoji }} {{ cat.name }}
+      </button>
+      <div class="ml-auto flex items-center gap-2">
         <button
-          @click="toggleShowAll"
-          class="text-xs font-bold uppercase tracking-wider px-6 py-2.5 rounded-full border transition-all"
-          :style="{
-            borderColor: 'var(--color-border)',
-            color: showAll ? 'var(--color-accent)' : 'var(--color-text-muted)',
-            backgroundColor: showAll ? 'rgba(163,0,0,0.05)' : 'transparent'
-          }"
+          v-if="isAdmin"
+          @click="fetchLatestNews"
+          :disabled="fetchLoading"
+          class="action-pill"
         >
-          {{ showAll ? 'Show less' : `Show all ${filteredArticles.length} articles` }}
+          {{ fetchLoading ? 'Fetching...' : '📡 Fetch News' }}
+        </button>
+        <span v-if="fetchStatus" class="status-pill" :class="fetchStatus.includes('error') ? 'status-error' : 'status-success'">
+          {{ fetchStatus }}
+        </span>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading-state">
+      <div class="loading-card primary"></div>
+      <div class="loading-grid">
+        <div v-for="i in 3" :key="i" class="loading-card"></div>
+      </div>
+    </div>
+
+    <div v-else-if="filteredArticles.length > 0">
+      <div class="show-all-row">
+        <p class="section-label">Featured coverage</p>
+        <button @click="toggleShowAll" class="show-all-btn">
+          {{ showAll ? 'Show less' : `Show all ${filteredArticles.length} stories` }}
         </button>
       </div>
 
       <div class="news-editorial-grid">
-
         <section class="left-column">
           <div v-if="visibleArticles[0]" class="hero-block" @click="viewFullArticle(visibleArticles[0])">
-            <div class="hero-badge">TOP STORY</div>
-            <div class="hero-image-wrapper">
-              <img :src="visibleArticles[0].image" alt="Hero Banner" class="hero-img" @error="onImageError($event, 'hero')" />
+            <div class="hero-media">
+              <img :src="visibleArticles[0].image" alt="Hero Banner" class="hero-img" @error="onImageError($event)" />
             </div>
-            <h2 class="hero-title">{{ visibleArticles[0].title }}</h2>
-            <p class="hero-snippet">{{ visibleArticles[0].description }}</p>
-            <span class="hero-meta">Reported by {{ visibleArticles[0].author }} — CLICK TO READ</span>
+            <div class="hero-body">
+              <div class="hero-badge">Top story</div>
+              <h2 class="hero-title">{{ visibleArticles[0].title }}</h2>
+              <p class="hero-snippet">{{ visibleArticles[0].description }}</p>
+              <div class="hero-meta">
+                <span>By {{ visibleArticles[0].author }}</span>
+                <span>{{ formatDate(visibleArticles[0].published) }}</span>
+              </div>
+            </div>
           </div>
+
           <div class="left-sub-grid">
             <div
               v-for="(article, index) in visibleArticles.slice(1, 4)"
@@ -67,10 +78,11 @@
               class="secondary-story-card"
               @click="viewFullArticle(article)"
             >
-              <div class="secondary-img-wrapper">
-                <img :src="article.image" alt="Story thumbnail" @error="onImageError($event, 'secondary')" />
+              <div class="featured-media">
+                <img :src="article.image" alt="Story thumbnail" @error="onImageError($event)" />
               </div>
               <div class="secondary-card-text">
+                <p class="card-kicker">{{ article.category }}</p>
                 <h3 class="secondary-title">{{ article.title }}</h3>
                 <p class="secondary-snippet">{{ truncateText(article.description, 95) }}</p>
               </div>
@@ -78,53 +90,64 @@
           </div>
         </section>
 
-        <section class="right-column">
+        <aside class="right-column">
+          <div class="sidebar-heading">
+            <p class="section-label">Trending now</p>
+            <span class="sidebar-pill">Updated</span>
+          </div>
           <div
             v-for="(article, index) in visibleArticles.slice(4, 8)"
             :key="'right-' + index"
-            class="secondary-story-card"
+            class="secondary-story-card compact"
             @click="viewFullArticle(article)"
           >
-            <div class="secondary-img-wrapper">
-              <img :src="article.image" alt="Story thumbnail" @error="onImageError($event, 'secondary')" />
+            <div class="featured-media small">
+              <img :src="article.image" alt="Story thumbnail" @error="onImageError($event)" />
             </div>
             <div class="secondary-card-text">
+              <p class="card-kicker">{{ article.category }}</p>
               <h3 class="secondary-title">{{ article.title }}</h3>
               <p class="secondary-snippet">{{ truncateText(article.description, 95) }}</p>
             </div>
           </div>
-        </section>
-
+        </aside>
       </div>
-      
-      <!-- Additional articles shown when "Show all" is active -->
+
       <div v-if="showAll && visibleArticles.length > ARTICLES_PER_PAGE" class="all-articles-list">
-        <h3 class="all-articles-title">More articles</h3>
+        <div class="all-articles-header">
+          <h3 class="all-articles-title">More stories</h3>
+          <p class="section-label">Continue reading</p>
+        </div>
         <div class="all-articles-grid">
           <div
-            v-for="(article, index) in visibleArticles.slice(ARTICLES_PER_PAGE)"
-            :key="'more-' + article.id"
+            v-for="article in visibleArticles.slice(ARTICLES_PER_PAGE)"
+            :key="article.id"
             class="more-article-card"
             @click="viewFullArticle(article)"
           >
-            <div class="more-img-wrapper">
-              <img :src="article.image" alt="More story" @error="onImageError($event, 'secondary')" />
+            <div class="more-media">
+              <img :src="article.image" alt="More story" @error="onImageError($event)" />
             </div>
             <div class="more-card-text">
+              <p class="card-kicker">{{ article.category }}</p>
               <h4 class="more-title">{{ article.title }}</h4>
               <p class="more-snippet">{{ truncateText(article.description, 140) }}</p>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
 
+    <div v-else class="empty-state">
+      <p>No stories are available in this section yet.</p>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { fallbackArticles } from '~/data/fallback-articles'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
@@ -134,18 +157,15 @@ const articles = ref([])
 const loading = ref(true)
 const currentCategory = ref(route.query.cat || 'general')
 
-// React to category changes coming from footer links
 watch(() => route.query.cat, (newCat) => {
   if (newCat) currentCategory.value = newCat
 })
+
 const fetchStatus = ref('')
 const fetchLoading = ref(false)
-const showFetchButton = ref(false)
-const lastFetchTime = ref('')
 
-// Check if user is admin (you can set your email here)
 const isAdmin = computed(() => {
-  return user.value?.email === 'alisedadmu@gmail.com' // Change this to your email
+  return user.value?.email === 'alisedadmu@gmail.com'
 })
 
 const fetchLatestNews = async () => {
@@ -201,15 +221,23 @@ const toggleShowAll = () => {
 
 const fetchArticles = async () => {
   loading.value = true
-  const { data, error } = await supabase
-    .from('articles')
-    .select('*')
-    .order('published', { ascending: false })
+  try {
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .order('published', { ascending: false })
 
-  if (!error && data) {
-    articles.value = data
+    if (!error && data?.length) {
+      articles.value = data
+    } else {
+      articles.value = fallbackArticles
+    }
+  } catch (err) {
+    console.warn('Supabase feed unavailable, using fallback articles.', err)
+    articles.value = fallbackArticles
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 
 const viewFullArticle = (article) => {
@@ -221,6 +249,15 @@ const truncateText = (text, maxLen) => {
   return text.length > maxLen ? text.substring(0, maxLen) + '...' : text
 }
 
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
+
 const categoryGradients = {
   general: { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', emoji: '🌍' },
   technology: { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', emoji: '💻' },
@@ -230,24 +267,17 @@ const categoryGradients = {
   health: { bg: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', emoji: '🏥' }
 }
 
-const onImageError = (event, type) => {
+const onImageError = (event) => {
   const img = event.target
-  // Replace the img with a styled gradient placeholder immediately
-  const wrapper = img.closest('.hero-image-wrapper, .secondary-img-wrapper')
+  const wrapper = img.closest('.hero-media, .featured-media, .more-media')
   if (wrapper) {
     const article = articles.value.find(a => a.image === img.src)
     const category = article?.category || currentCategory.value
     const gradient = categoryGradients[category] || categoryGradients.general
-    wrapper.innerHTML = `<div class="category-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${gradient.bg};font-size:${type === 'hero' ? '4rem' : '2.5rem'};">${gradient.emoji}</div>`
+    wrapper.innerHTML = `<div class="category-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${gradient.bg};font-size:2.5rem;">${gradient.emoji}</div>`
   }
 }
 
-const handleSignOut = async () => {
-  await supabase.auth.signOut()
-  await navigateTo('/auth')
-}
-
-// Real-time subscription for articles
 let subscription = null
 
 onMounted(async () => {
@@ -273,272 +303,436 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
-.news-portal-container {
-  background-color: var(--color-bg);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  min-height: 100vh;
-  color: var(--color-text);
+.portal-shell {
+  padding: 1.25rem 0 0;
 }
 
-/* HOMEPAGE TOPBAR */
-.homepage-topbar {
+.hero-intro {
   display: grid;
-  gap: 1.5rem;
-  grid-template-columns: 1fr;
-  align-items: stretch;
-  margin-bottom: 2rem;
-}
-.topbar-copy {
-  border: 1px solid var(--color-border);
-  background: linear-gradient(135deg, #fffdf8 0%, #f7f1e7 100%);
+  gap: 1.25rem;
+  grid-template-columns: 1.6fr 0.85fr;
   padding: 2rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 32px;
+  background: linear-gradient(135deg, #fffdf8 0%, #f5ebdc 100%);
+  box-shadow: 0 24px 80px rgba(17, 17, 17, 0.05);
 }
-.home-kicker {
-  font-size: 0.78rem;
+
+.intro-copy h1 {
+  margin: 0.35rem 0 0.8rem;
+  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #111111;
+  font-family: 'Playfair Display', serif;
+}
+
+.intro-copy p {
+  margin: 0;
+  max-width: 640px;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.eyebrow,
+.section-label,
+.card-kicker {
+  font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.24em;
   text-transform: uppercase;
+  color: var(--color-accent);
 }
 
-/* BREAKING TICKER */
-.breaking-ticker {
-  background-color: #a30000;
-  color: white;
-  padding: 0.5rem 2rem;
+.intro-aside {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-.ticker-badge {
-  background: white;
-  color: #a30000;
-  padding: 0.1rem 0.4rem;
-  border-radius: 3px;
-  font-size: 0.75rem;
+  flex-direction: column;
+  gap: 0.8rem;
+  justify-content: flex-end;
 }
 
-/* EDITORIAL HEADERS */
-.portal-header {
-  border-bottom: 3px double #111111;
-  margin: 0 2rem;
-}
-.header-brand-zone {
-  text-align: center;
-  padding: 2rem 0;
-  border-bottom: 1px solid #e5e5e5;
-}
-.portal-logo {
-  font-family: 'Cinzel', serif;
-  font-size: 3.5rem;
-  font-weight: 800;
-  letter-spacing: -1px;
-  margin: 0.5rem 0;
-}
-.header-date, .header-edition {
-  font-size: 0.8rem;
+.insight-pill,
+.sidebar-pill {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.06);
+  color: #222222;
+  font-size: 0.74rem;
   font-weight: 700;
-  letter-spacing: 1.5px;
-  color: #555555;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
-/* NAVIGATION TABS */
-.portal-nav {
+.insight-card {
+  border-radius: 20px;
+  border: 1px solid rgba(232, 224, 212, 0.9);
+  background: rgba(255, 255, 255, 0.75);
+  padding: 1rem 1.1rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-}
-.primary-nav-links {
-  display: flex;
-  gap: 1.5rem;
-}
-.primary-nav-links button {
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-weight: 700;
-  font-size: 1rem;
-  color: #666666;
-  cursor: pointer;
-  padding: 0.5rem 0;
-}
-.primary-nav-links button:hover, .primary-nav-links button.active {
-  color: #a30000;
-  border-bottom: 2px solid #a30000;
-}
-.util-link {
-  text-decoration: none;
-  color: #666666;
-  font-size: 0.9rem;
-  margin-left: 1.25rem;
-  font-weight: 600;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-/* INNER CATEGORY SUB-BAR */
+.insight-card span {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+}
+
+.insight-card strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111111;
+}
+
 .category-filter-bar {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #e5e5e5;
-  padding-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  padding: 1rem 0 1.3rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
 }
+
 .category-filter-bar button {
-  background: #f4f1ea;
-  border: 1px solid #e5e5e5;
-  padding: 0.5rem 1rem;
-  font-family: inherit;
-  font-weight: 600;
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--color-text-secondary);
+  padding: 0.6rem 0.95rem;
+  border-radius: 999px;
   font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  border-radius: 4px;
+  transition: all 0.2s ease;
 }
+
+.category-filter-bar button:hover,
 .category-filter-bar button.selected {
   background: #111111;
   color: white;
   border-color: #111111;
 }
 
-/* EDITORIAL GRID SYSTEM */
-.portal-layout { padding: 2rem; }
-.news-editorial-grid {
-  display: grid;
-  grid-template-columns: 2fr 1.25fr;
-  gap: 2.5rem;
+.action-pill,
+.show-all-btn {
+  border: 1px solid var(--color-border);
+  background: white;
+  color: var(--color-text-secondary);
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* LEFT COLUMN — hero + sub-grid */
+.action-pill:hover,
+.show-all-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.status-pill {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.status-error {
+  color: var(--color-accent);
+}
+
+.status-success {
+  color: #0f766e;
+}
+
+.loading-state {
+  display: grid;
+  gap: 1rem;
+}
+
+.loading-card {
+  border-radius: 24px;
+  min-height: 180px;
+  background: linear-gradient(90deg, #f0e8da 0%, #f8f4ea 50%, #f0e8da 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s infinite;
+}
+
+.loading-card.primary {
+  min-height: 320px;
+}
+
+.loading-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.show-all-row,
+.all-articles-header,
+.sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.news-editorial-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 0.95fr;
+  gap: 1.4rem;
+}
+
 .left-column {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-}
-.hero-block {
-  cursor: pointer;
-  border-bottom: 1px solid #e5e5e5;
-  padding-bottom: 1.5rem;
-}
-.hero-badge {
-  background-color: #111111;
-  color: white;
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-.hero-image-wrapper { width: 100%; height: 380px; overflow: hidden; }
-.hero-img {
-  width: 100%; height: 100%; object-fit: cover; margin-bottom: 1.25rem;
-}
-.hero-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.2rem; font-weight: 700; line-height: 1.2; margin: 1rem 0;
-}
-.hero-snippet { font-size: 1.05rem; line-height: 1.6; color: var(--color-text-secondary); margin-bottom: 1rem; }
-.hero-meta { font-size: 0.8rem; font-weight: 700; color: #a30000; text-transform: uppercase; }
-
-.left-sub-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1.5rem;
-}
-
-/* RIGHT COLUMN */
-.right-column {
-  border-left: 1px solid #e5e5e5;
-  padding-left: 2.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-}
-.secondary-story-card {
-  cursor: pointer; display: flex; flex-direction: column; gap: 1rem;
-  padding-bottom: 1.75rem; border-bottom: 1px solid #eeeeee;
-}
-.secondary-img-wrapper { width: 100%; height: 160px; overflow: hidden; }
-.secondary-story-card img { width: 100%; height: 100%; object-fit: cover; }
-.secondary-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; line-height: 1.3; }
-.secondary-snippet { font-size: 0.9rem; color: var(--color-text-secondary); margin-top: 0.25rem; }
-
-/* (dead CSS removed - article viewer moved to /news/[id]) */
-
-/* SHOW ALL — additional articles */
-.all-articles-list {
-  margin-top: 2.5rem;
-  border-top: 1px solid #ece8e0;
-  padding-top: 1.75rem;
-}
-.all-articles-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.35rem;
-  margin-bottom: 1.25rem;
-  letter-spacing: 0.01em;
-}
-.all-articles-grid {
-  display: flex;
-  flex-direction: column;
   gap: 1rem;
 }
+
+.hero-block,
+.secondary-story-card,
 .more-article-card {
-  cursor: pointer;
-  border: 1px solid #ece8e0;
-  border-radius: 16px;
-  padding: 1rem;
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 1rem;
-  align-items: center;
-  background: linear-gradient(180deg, #ffffff 0%, #fcfaf6 100%);
-  box-shadow: 0 8px 20px rgba(17, 17, 17, 0.04);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(17, 17, 17, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+.hero-block:hover,
+.secondary-story-card:hover,
 .more-article-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 26px rgba(17, 17, 17, 0.08);
+  box-shadow: 0 16px 40px rgba(17, 17, 17, 0.08);
 }
-.more-img-wrapper {
-  width: 100%;
-  height: 140px;
+
+.hero-media {
+  height: 320px;
   overflow: hidden;
-  border-radius: 12px;
-  background: #f4f1ea;
+  background: #efe6d7;
 }
-.more-img-wrapper img {
+
+.hero-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.more-card-text {
+
+.hero-body {
+  padding: 1.15rem 1.25rem 1.3rem;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  margin-bottom: 0.85rem;
+  border-radius: 999px;
+  background: #111111;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.hero-title {
+  margin: 0 0 0.6rem;
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #111111;
+  font-family: 'Playfair Display', serif;
+}
+
+.hero-snippet {
+  margin: 0 0 0.8rem;
+  color: var(--color-text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.left-sub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.secondary-story-card {
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  min-width: 0;
 }
+
+.secondary-story-card.compact {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 0.8rem;
+}
+
+.featured-media {
+  height: 150px;
+  overflow: hidden;
+  background: #efe6d7;
+}
+
+.featured-media.small {
+  height: 92px;
+  width: 92px;
+  flex-shrink: 0;
+  border-radius: 16px;
+}
+
+.featured-media img,
+.more-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.secondary-card-text {
+  padding: 0.95rem 0.95rem 1rem;
+}
+
+.secondary-title,
 .more-title {
+  margin: 0.1rem 0 0.35rem;
   font-size: 1rem;
-  margin: 0;
   font-weight: 700;
   line-height: 1.35;
-}
-.more-snippet {
-  font-size: 0.92rem;
-  line-height: 1.55;
-  color: var(--color-text-secondary);
-  margin: 0;
+  color: #111111;
 }
 
-@media (max-width: 768px) {
-  .more-article-card {
+.secondary-snippet,
+.more-snippet {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.all-articles-list {
+  margin-top: 1.4rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.all-articles-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-family: 'Playfair Display', serif;
+}
+
+.all-articles-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.more-article-card {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.more-media {
+  height: 120px;
+  overflow: hidden;
+  background: #efe6d7;
+}
+
+.more-card-text {
+  padding: 0.95rem 0.95rem 0.95rem 0;
+}
+
+.empty-state {
+  padding: 3rem 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 24px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 1024px) {
+  .hero-intro,
+  .news-editorial-grid {
     grid-template-columns: 1fr;
-    padding: 0.8rem;
   }
 
-  .more-img-wrapper {
-    height: 150px;
+  .intro-aside {
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 820px) {
+  .left-sub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .more-article-card {
+    grid-template-columns: 1fr;
+  }
+
+  .more-card-text {
+    padding: 0 0.95rem 0.95rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .portal-shell {
+    padding-top: 0.5rem;
+  }
+
+  .hero-intro {
+    padding: 1.2rem;
+    border-radius: 22px;
+  }
+
+  .loading-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .secondary-story-card.compact {
+    flex-direction: column;
+  }
+
+  .featured-media.small {
+    width: 100%;
+    height: 140px;
   }
 }
 </style>
