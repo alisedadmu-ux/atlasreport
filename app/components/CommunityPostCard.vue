@@ -1,127 +1,78 @@
 <template>
-  <div class="rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-    <!-- Post header: avatar, name, timestamp, follow button -->
-    <div class="flex items-start gap-3 p-4 pb-2">
-      <button @click="navigateToProfile" class="shrink-0">
-        <div
-          class="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white ring-2 ring-white shadow-sm hover:opacity-80 transition-opacity"
-          :style="{ background: post.authorColor }"
-        >
+  <article class="post-card">
+    <div class="post-header">
+      <button @click="navigateToProfile" class="post-avatar" :aria-label="post.author_name || 'View profile'">
+        <div class="avatar-circle" :style="{ background: post.authorColor }">
           {{ getInitials(post.author_name || post.author_email || 'A') }}
         </div>
       </button>
-      <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2">
-          <button @click="navigateToProfile" class="text-sm font-bold text-slate-900 hover:underline truncate">
+      <div class="post-header-main">
+        <div class="post-author-row">
+          <button @click="navigateToProfile" class="post-author-name">
             {{ post.author_name || post.author_email?.split('@')[0] || 'Anonymous' }}
           </button>
-          <span class="text-xs text-slate-400 shrink-0">· {{ formatTime(post.created_at) }}</span>
+          <span class="post-time">&middot; {{ formatTime(post.created_at) }}</span>
         </div>
-        <p v-if="post.author_bio" class="text-xs text-slate-400 truncate mt-0.5">{{ post.author_bio }}</p>
+        <p v-if="post.author_bio" class="post-bio">{{ truncateText(post.author_bio, 90) }}</p>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <!-- Follow button -->
+      <div class="post-header-actions">
         <button
           v-if="currentUser && post.user_id !== currentUserId"
           @click.stop="toggleFollow(post.user_id)"
           :disabled="followLoading === post.user_id"
-          class="text-xs font-bold px-3 py-1.5 rounded-full border transition-all duration-150"
-          :class="isFollowing 
-            ? 'border-slate-300 text-slate-500 hover:border-red-300 hover:text-red-500 hover:bg-red-50' 
-            : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'"
+          class="follow-btn"
+          :class="isFollowing ? 'following' : ''"
         >
           {{ followLoading === post.user_id ? '...' : isFollowing ? 'Following' : 'Follow' }}
         </button>
-        <!-- Delete button (own post only) -->
         <button
           v-if="post.user_id === currentUserId"
           @click.stop="$emit('delete', post.id)"
-          class="text-xs text-slate-400 hover:text-red-500 transition-colors p-1"
+          class="delete-btn"
           title="Delete post"
+          aria-label="Delete post"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-          </svg>
+          <Trash2 class="delete-icon" />
         </button>
       </div>
     </div>
 
-    <!-- Post content -->
-    <div class="px-4 pb-2">
-      <h3 v-if="post.title" class="text-base font-bold text-slate-900 mb-1">{{ post.title }}</h3>
-      <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{{ post.content }}</p>
+    <div class="post-body">
+      <h3 v-if="post.title" class="post-title">{{ post.title }}</h3>
+      <p class="post-content">{{ post.content }}</p>
     </div>
 
-    <!-- Post image -->
-    <div v-if="post.image_url" class="px-4 pb-3">
-      <img
-        :src="post.image_url"
-        alt="Post image"
-        class="w-full max-h-96 object-cover rounded-lg border border-slate-100"
-        @click="expandImage"
-      />
+    <div v-if="post.image_url" class="post-media">
+      <img :src="post.image_url" alt="Post image" loading="lazy" @click="expandImage" class="post-media-img" />
     </div>
 
-    <!-- Image expanded modal -->
-    <div
-      v-if="imageExpanded"
-      class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-pointer"
-      @click="imageExpanded = false"
-    >
-      <img :src="post.image_url" alt="Expanded image" class="max-w-full max-h-full object-contain rounded-lg" />
-    </div>
+      <div v-if="imageExpanded" class="image-expand-overlay" @click="closeImage" role="button" aria-label="Close image" tabindex="0" @keydown.esc="closeImage">
+        <img :src="post.image_url" alt="Expanded image" class="image-expand-img" />
+      </div>
 
-    <!-- Action bar: Like, Comment -->
-    <div class="flex items-center gap-1 px-4 pb-1 border-b border-slate-100">
-      <!-- Like button -->
-      <button
-        @click="toggleLike"
-        class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150"
-        :class="liked 
-          ? 'text-red-500 bg-red-50 hover:bg-red-100' 
-          : 'text-slate-500 hover:text-red-500 hover:bg-red-50'"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="liked ? 'fill-red-500' : ''" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-        </svg>
-        <span>{{ likeCount }}</span>
+    <div class="post-actions-bar">
+      <button @click="toggleLike" class="action-btn" :class="liked ? 'liked' : ''" :aria-label="liked ? 'Unlike' : 'Like'">
+        <Heart class="action-icon" :fill="liked ? 'currentColor' : 'none'" />
+        <span class="action-count">{{ likeCount }}</span>
       </button>
 
-      <!-- Comment button -->
-      <button
-        @click="$emit('open-comments', post)"
-        class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-150"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zm-4 0H9v2h2V9z" clip-rule="evenodd" />
-        </svg>
-        <span>{{ commentCount }}</span>
+      <button @click="$emit('open-comments', post)" class="action-btn" aria-label="Comment">
+        <MessageCircle class="action-icon" />
+        <span class="action-count">{{ commentCount }}</span>
       </button>
 
-      <!-- Share (copy link) -->
-      <button
-        @click="sharePost"
-        class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-500 hover:text-green-500 hover:bg-green-50 transition-all duration-150 ml-auto"
-        title="Copy link"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
-        </svg>
+      <button @click="sharePost" class="action-btn" aria-label="Copy link">
+        <Share2 class="action-icon" />
       </button>
     </div>
-
-    <!-- Share toast -->
-    <div
-      v-if="showShareToast"
-      class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-lg z-50 animate-bounce"
-    >
-      Link copied to clipboard!
-    </div>
-  </div>
+  </article>
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
+import { getInitials, formatRelativeTime, truncateText } from '~/utils/format'
+import { Trash2, Heart, MessageCircle, Share2 } from '@lucide/vue'
 
 const props = defineProps({
   post: { type: Object, required: true },
@@ -131,8 +82,8 @@ const props = defineProps({
 
 const emit = defineEmits(['delete', 'open-comments', 'follow-changed'])
 
-const supabase = useSupabaseClient()
 const router = useRouter()
+const supabase = useSupabaseClient()
 
 const liked = ref(false)
 const likeCount = ref(0)
@@ -140,119 +91,60 @@ const commentCount = ref(0)
 const isFollowing = ref(false)
 const followLoading = ref(false)
 const imageExpanded = ref(false)
-const showShareToast = ref(false)
 
-const accentColors = ['#0f172a', '#b91c1c', '#047857', '#b45309', '#1d4ed8', '#7c3aed']
-
-const getInitials = (name) => {
-  return name
-    .split(/[ @._-]/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('')
-}
-
-const formatTime = (timestamp) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now - date
-  const mins = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m`
-  if (hours < 24) return `${hours}h`
-  if (days < 7) return `${days}d`
-  return date.toLocaleDateString()
-}
+const formatTime = (timestamp) => formatRelativeTime(timestamp)
 
 const navigateToProfile = () => {
-  router.push(`/community/profile/${post.user_id}`)
+  router.push(`/community/profile/${props.post.user_id}`)
 }
 
 const toggleLike = async () => {
-  if (!props.currentUser) return
-
+  if (!props.currentUser) return navigateTo('/auth')
   if (liked.value) {
-    // Unlike
-    const { error } = await supabase
-      .from('post_likes')
-      .delete()
-      .eq('post_id', props.post.id)
-      .eq('user_id', props.currentUserId)
-
-    if (!error) {
-      liked.value = false
-      likeCount.value = Math.max(0, likeCount.value - 1)
-    }
+    const { error } = await supabase.from('post_likes').delete().eq('post_id', props.post.id).eq('user_id', props.currentUserId)
+    if (!error) { liked.value = false; likeCount.value = Math.max(0, likeCount.value - 1) }
   } else {
-    // Like
-    const { error } = await supabase
-      .from('post_likes')
-      .insert({ post_id: props.post.id, user_id: props.currentUserId })
-
-    if (!error) {
-      liked.value = true
-      likeCount.value += 1
-    }
+    const { error } = await supabase.from('post_likes').insert({ post_id: props.post.id, user_id: props.currentUserId })
+    if (!error) { liked.value = true; likeCount.value += 1 }
   }
 }
 
 const toggleFollow = async (targetUserId) => {
-  if (!props.currentUser) return
-
+  if (!props.currentUser) return navigateTo('/auth')
   followLoading.value = targetUserId
-
   if (isFollowing.value) {
-    const { error } = await supabase
-      .from('follows')
-      .delete()
-      .eq('follower_id', props.currentUserId)
-      .eq('following_id', targetUserId)
-
-    if (!error) {
-      isFollowing.value = false
-      emit('follow-changed', { userId: targetUserId, following: false })
-    }
+    const { error } = await supabase.from('follows').delete().eq('follower_id', props.currentUserId).eq('following_id', targetUserId)
+    if (!error) { isFollowing.value = false; emit('follow-changed', { userId: targetUserId, following: false }) }
   } else {
-    const { error } = await supabase
-      .from('follows')
-      .insert({ follower_id: props.currentUserId, following_id: targetUserId })
-
-    if (!error) {
-      isFollowing.value = true
-      emit('follow-changed', { userId: targetUserId, following: true })
-    }
+    const { error } = await supabase.from('follows').insert({ follower_id: props.currentUserId, following_id: targetUserId })
+    if (!error) { isFollowing.value = true; emit('follow-changed', { userId: targetUserId, following: true }) }
   }
-
   followLoading.value = false
 }
 
 const sharePost = async () => {
-  const url = `${window.location.origin}/community/post/${props.post.id}`
-  try {
-    await navigator.clipboard.writeText(url)
-  } catch {
-    // Fallback
-    const textarea = document.createElement('textarea')
-    textarea.value = url
-    document.body.appendChild(textarea)
-    textarea.select()
+  const url = `${window.location.origin}/community`
+  try { await navigator.clipboard.writeText(url) } catch {
+    const ta = document.createElement('textarea')
+    ta.value = url
+    document.body.appendChild(ta)
+    ta.select()
     document.execCommand('copy')
-    document.body.removeChild(textarea)
+    document.body.removeChild(ta)
   }
-
-  showShareToast.value = true
-  setTimeout(() => { showShareToast.value = false }, 2000)
 }
 
-const expandImage = () => {
-  imageExpanded.value = true
-}
+const expandImage = () => { imageExpanded.value = true }
+const closeImage = () => { imageExpanded.value = false }
+const onEsc = (e) => { if (e.key === 'Escape') closeImage() }
 
-// Initialize like/comment/follow state from post data
+watch(imageExpanded, (open) => {
+  if (open) document.addEventListener('keydown', onEsc)
+  else document.removeEventListener('keydown', onEsc)
+})
+
+onBeforeUnmount(() => document.removeEventListener('keydown', onEsc))
+
 const initState = () => {
   likeCount.value = props.post.like_count || 0
   commentCount.value = props.post.comment_count || 0
@@ -262,3 +154,279 @@ const initState = () => {
 
 watch(() => props.post, initState, { immediate: true })
 </script>
+
+<style scoped>
+.post-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.post-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.post-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 0;
+}
+
+.post-avatar {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 9999px;
+  transition: opacity 0.2s ease;
+}
+
+.post-avatar:hover { opacity: 0.8; }
+
+.avatar-circle {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 800;
+  transition: opacity 0.2s ease;
+}
+
+.post-header-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-author-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.post-author-name {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--color-text);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.post-author-name:hover {
+  color: var(--color-accent);
+}
+
+.post-time {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.post-bio {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.follow-btn {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.follow-btn:hover {
+  border-color: var(--color-text-muted);
+  color: var(--color-text);
+}
+
+.follow-btn.following {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.follow-btn.following:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.delete-icon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.delete-btn:hover {
+  color: var(--color-error);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.post-body {
+  padding: 0.85rem 1.25rem 0.6rem;
+}
+
+.post-title {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--color-text);
+  margin-bottom: 0.4rem;
+}
+
+.post-content {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  white-space: pre-line;
+}
+
+.post-media {
+  margin: 0.3rem 1rem 0.85rem;
+  border-radius: var(--radius-base);
+  overflow: hidden;
+  background: var(--color-bg-alt);
+}
+
+.post-media-img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.35s ease;
+}
+
+.post-media:hover .post-media-img {
+  transform: scale(1.01);
+}
+
+.image-expand-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.88);
+  cursor: pointer;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.image-expand-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-base);
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.post-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem 0.85rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-count {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  min-width: 1rem;
+  text-align: center;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.action-btn:hover {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+.action-btn.liked {
+  color: var(--color-error);
+}
+
+.action-btn.liked:hover {
+  background: rgba(220, 38, 38, 0.06);
+}
+</style>

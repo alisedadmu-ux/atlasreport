@@ -1,19 +1,55 @@
 <template>
-  <div class="min-h-screen" :style="{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }">
-    <div class="mx-auto max-w-4xl px-6 py-16">
-      <div class="grid gap-10 rounded-2xl border p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }">
-        <section class="space-y-6">
-          <div class="space-y-3">
-            <p class="text-sm uppercase tracking-[0.35em] text-slate-500">Atlas Report</p>
-            <h1 class="text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">Welcome back to your newsroom</h1>
-            <p class="max-w-2xl text-slate-600">Sign in to open your home feed, follow the newest updates, and manage your profile settings.</p>
+  <div class="auth-page">
+    <div class="auth-grid">
+      <section class="auth-brand">
+        <NuxtLink to="/" class="auth-logo" aria-label="Atlas Report — Home">
+          <img src="/images/atlaslogo.png" alt="Atlas Report" class="auth-logo-img" />
+        </NuxtLink>
+        <div class="auth-brand-content">
+          <h2 class="auth-brand-heading">Join the intelligence network</h2>
+          <p class="auth-brand-text">
+            Premium editorial coverage for modern readers. Sign in to access your custom feed and join the community.
+          </p>
+        </div>
+        <div class="auth-brand-features">
+          <div class="feature">
+            <span class="feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg>
+            </span>
+            <span>Curated reading</span>
           </div>
+          <div class="feature">
+            <span class="feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </span>
+            <span>Community</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </span>
+            <span>Secure account</span>
+          </div>
+        </div>
+      </section>
 
+      <section class="auth-main">
+        <div class="auth-card">
           <div class="auth-tabs" role="tablist" aria-label="Authentication tabs">
             <button
               type="button"
-              class="auth-tab-btn"
-              :class="{ 'auth-tab-btn-active': mode === 'login' }"
+              :class="['auth-tab', { 'auth-tab-active': mode === 'login' }]"
               role="tab"
               :aria-selected="mode === 'login'"
               @click="mode = 'login'"
@@ -22,8 +58,7 @@
             </button>
             <button
               type="button"
-              class="auth-tab-btn"
-              :class="{ 'auth-tab-btn-active': mode === 'signup' }"
+              :class="['auth-tab', { 'auth-tab-active': mode === 'signup' }]"
               role="tab"
               :aria-selected="mode === 'signup'"
               @click="mode = 'signup'"
@@ -32,93 +67,69 @@
             </button>
           </div>
 
-          <form class="space-y-5 rounded-2xl border p-6" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-alt)' }" @submit.prevent="handleSubmit">
-            <div class="space-y-2">
-              <label for="email" class="text-sm font-semibold text-slate-700">Email address</label>
+          <form class="auth-form" @submit.prevent="handleSubmit">
+            <div class="form-group">
+              <label for="email" class="form-label">Email address</label>
               <input
                 id="email"
                 v-model="form.email"
                 type="email"
                 required
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900"
+                class="form-input"
                 placeholder="team@atlasreport.com"
-              >
+                autocomplete="email"
+              />
             </div>
 
-            <div class="space-y-2">
-              <label for="password" class="text-sm font-semibold text-slate-700">Password</label>
+            <div class="form-group">
+              <label for="password" class="form-label">Password</label>
               <input
                 id="password"
                 v-model="form.password"
                 type="password"
                 required
-                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slate-900"
+                class="form-input"
                 placeholder="Enter a secure password"
-              >
+                :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
+              />
             </div>
 
-            <button
-              type="submit"
-              :disabled="loading"
-              class="w-full rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-            >
+            <button type="submit" :disabled="loading" class="btn btn-primary btn-lg w-full">
               {{ loading ? 'Working...' : mode === 'login' ? 'Sign in' : 'Create account' }}
             </button>
 
-            <div v-if="mode === 'login'" class="text-center mt-3">
-              <NuxtLink to="/forgot-password" class="text-xs font-semibold hover:underline" :style="{ color: 'var(--color-accent, #a30000)' }">
-                Forgot your password?
-              </NuxtLink>
+            <div v-if="mode === 'login'" class="auth-forgot">
+              <NuxtLink to="/forgot-password" class="link-accent">Forgot your password?</NuxtLink>
             </div>
           </form>
 
-          <div class="space-y-3 rounded-2xl border p-5" :style="{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-alt)' }">
-            <p class="text-sm font-semibold text-slate-700">Auth status</p>
-            <p class="text-sm text-slate-600">{{ statusMessage }}</p>
-            <p v-if="error" class="text-sm font-semibold text-rose-500">{{ error }}</p>
-            <p v-if="success" class="text-sm font-semibold text-emerald-600">{{ success }}</p>
+          <div v-if="error || success" class="auth-feedback">
+            <p v-if="error" class="form-error">{{ error }}</p>
+            <p v-if="success" class="form-success">{{ success }}</p>
           </div>
-        </section>
+        </div>
 
-        <aside class="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-slate-700 shadow-xl shadow-slate-200/40">
-          <div class="space-y-4">
-            <h2 class="text-2xl font-black text-slate-950">Current session</h2>
-            <p class="text-sm leading-7 text-slate-600">Your Supabase session is synchronized automatically by Nuxt. Signed-in users can jump straight to the home feed.</p>
-
-            <div class="space-y-4 rounded-2xl bg-slate-950 p-6">
-              <div class="flex items-center justify-between gap-3">
-                <span class="text-sm uppercase tracking-[0.18em] text-slate-400">User</span>
-                <span class="text-xs text-slate-500">status</span>
+        <div class="auth-session">
+          <div class="session-card">
+            <div class="session-header">
+              <h3 class="session-title">Current session</h3>
+              <div class="session-indicator">
+                <span :class="['status-dot', user ? 'active' : 'inactive']"></span>
+                <span class="status-label">{{ user ? 'Signed in' : 'Not signed in' }}</span>
               </div>
-
-              <div class="space-y-2">
-                <p class="text-base font-semibold text-white">{{ userLabel }}</p>
-                <p class="text-sm text-slate-400">{{ userEmail }}</p>
-              </div>
-
-              <NuxtLink
-                v-if="user"
-                to="/"
-                class="flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
-              >
-                Open home
-              </NuxtLink>
-
-              <button
-                v-if="user"
-                class="w-full rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
-                @click="handleSignOut"
-              >
-                Sign out
-              </button>
             </div>
-
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 text-sm leading-7 text-slate-600">
-              <p>After a successful login, Atlas Report now sends you to the home page automatically.</p>
+            <p class="session-desc">Your Supabase session is synchronized automatically.</p>
+            <div class="session-email-status">
+              <p v-if="user" class="session-email">{{ user.email }}</p>
+              <p v-else class="session-email">No active email session</p>
+            </div>
+            <div class="session-actions">
+              <NuxtLink v-if="user" to="/" class="btn btn-primary w-full">Open home feed</NuxtLink>
+              <button v-if="user" @click="handleSignOut" class="btn btn-ghost w-full">Sign out</button>
             </div>
           </div>
-        </aside>
-      </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -135,15 +146,6 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
-const statusMessage = computed(() => {
-  if (loading.value) return 'Processing your request...'
-  if (user.value) return 'Signed in successfully. You can open your home feed.'
-  return 'Not signed in yet. Use your email and password to authenticate.'
-})
-
-const userLabel = computed(() => (user.value ? 'Signed in' : 'Not signed in'))
-const userEmail = computed(() => user.value?.email ?? 'No active email session')
-
 const handleSubmit = async () => {
   loading.value = true
   error.value = ''
@@ -156,38 +158,22 @@ const handleSubmit = async () => {
   }
 
   if (mode.value === 'login') {
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: form.email,
-      password: form.password
-    })
-
-    if (signInError) {
-      error.value = signInError.message
-      loading.value = false
-      return
-    }
-
-    success.value = 'Successfully signed in. Opening your profile...'
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password })
+    if (signInError) { error.value = signInError.message; loading.value = false; return }
+    success.value = 'Successfully signed in.'
     form.password = ''
     loading.value = false
     await navigateTo('/profile')
     return
   }
 
-  const { data, error: signUpError } = await supabase.auth.signUp({
-    email: form.email,
-    password: form.password
-  })
-
+  const { data, error: signUpError } = await supabase.auth.signUp({ email: form.email, password: form.password })
   if (signUpError) {
     error.value = signUpError.message
   } else {
-    success.value = data.user
-      ? 'Account created successfully. Check your email for a confirmation link.'
-      : 'Next step: check your email to activate your account.'
+    success.value = data.user ? 'Account created. Check your email for a confirmation link.' : 'Check your email to activate your account.'
     form.password = ''
   }
-
   loading.value = false
 }
 
@@ -195,68 +181,275 @@ const handleSignOut = async () => {
   loading.value = true
   error.value = ''
   success.value = ''
-
   const { error: signOutError } = await supabase.auth.signOut()
   loading.value = false
-
-  if (signOutError) {
-    error.value = signOutError.message
-  } else {
-    success.value = 'Signed out successfully.'
-  }
+  if (signOutError) { error.value = signOutError.message } else { success.value = 'Signed out successfully.' }
 }
 </script>
 
 <style scoped>
-.auth-tabs {
+.auth-page {
+  min-height: 100vh;
+  padding: 3rem 0;
   display: flex;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  background: #e2e8f0;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 0.75rem;
-  margin-bottom: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
 }
 
-.auth-tab-btn {
+.auth-grid {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  padding: 0 1.5rem;
+  align-items: center;
+}
+
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: fit-content;
+  text-decoration: none;
+}
+
+.auth-logo-img {
+  display: block;
+  width: 120px;
+  height: auto;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.auth-logo:hover .auth-logo-img {
+  transform: scale(1.04) rotate(-1deg);
+}
+
+.auth-brand-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-brand-heading {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--color-text);
+}
+
+.auth-brand-text {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  max-width: 340px;
+}
+
+.auth-brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.feature-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 9rem;
-  background: transparent;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+}
+
+.auth-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-base);
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  margin-bottom: 1.75rem;
+}
+
+.auth-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
-  border-radius: 0.6rem;
+  background: transparent;
   font-family: inherit;
+  font-size: 0.8125rem;
   font-weight: 800;
-  font-size: 0.82rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #475569;
+  color: var(--color-text-secondary);
   cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.auth-tab:hover {
+  color: var(--color-text);
+}
+
+.auth-tab-active {
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.auth-forgot {
+  text-align: center;
+  font-size: 0.8125rem;
+}
+
+.auth-feedback {
+  margin-top: 1.5rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.auth-session .session-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.session-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.session-title {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.session-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+}
+
+.status-dot.active { background: var(--color-success); }
+.status-dot.inactive { background: var(--color-text-muted); }
+
+.status-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.session-desc {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+  margin-bottom: 1.1rem;
+}
+
+.session-email-status {
   padding: 0.85rem 1rem;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  border-radius: var(--radius-sm);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  margin-bottom: 1.1rem;
 }
 
-.auth-tab-btn:hover {
-  color: #0f172a;
-  background: rgba(255, 255, 255, 0.55);
+.session-email {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
 }
 
-.auth-tab-btn-active {
-  color: #0f172a;
-  background: #ffffff;
-  border-color: rgba(148, 163, 184, 0.35);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+.session-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-@media (max-width: 520px) {
-  .auth-tabs {
-    flex-direction: column;
+.w-full {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .auth-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
   }
 
-  .auth-tab-btn {
-    width: 100%;
-    min-width: 0;
+  .auth-brand {
+    text-align: center;
+    align-items: center;
+  }
+
+  .auth-brand-text {
+    max-width: 100%;
+  }
+
+  .auth-session {
+    display: none;
+  }
+
+  .auth-page {
+    padding: 2rem 0;
+    align-items: flex-start;
   }
 }
 </style>

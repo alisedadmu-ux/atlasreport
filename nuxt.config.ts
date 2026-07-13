@@ -2,7 +2,7 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { config as loadEnv } from 'dotenv'
-import tailwindcss from '@tailwindcss/vite'
+import { defineNuxtConfig } from 'nuxt/config'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 loadEnv({ path: path.resolve(__dirname, '.env.local') })
@@ -17,7 +17,8 @@ export default defineNuxtConfig({
   ],
   modules: [
     '@nuxtjs/supabase',
-    '@vite-pwa/nuxt'
+    '@vite-pwa/nuxt',
+    '@nuxtjs/color-mode'
   ],
   runtimeConfig: {
     public: {
@@ -25,25 +26,32 @@ export default defineNuxtConfig({
         url: process.env.NUXT_PUBLIC_SUPABASE_URL,
         key: process.env.NUXT_PUBLIC_SUPABASE_KEY,
         redirect: false
-      }
+      },
+      adminEmail: process.env.NUXT_ADMIN_EMAIL || 'alisedadmu@gmail.com'
     }
   },
-  vite: {
-    plugins: [
-      tailwindcss()
-    ]
+  colorMode: {
+    classSuffix: '',
+    preference: 'system',
+    fallback: 'light'
   },
   compatibilityDate: '2026-06-12',
   app: {
     head: {
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
+      htmlAttrs: {
+        lang: 'en'
+      },
       title: 'Atlas Report — Global Intelligence Feed',
       meta: [
         { name: 'description', content: 'Premium editorial coverage delivering verified reporting across geopolitics, science, and markets. Stay current with the Atlas Report feed.' },
         { name: 'keywords', content: 'news, global intelligence, geopolitics, science, technology, business, health, sports' },
         { name: 'author', content: 'Atlas Report' },
         { name: 'robots', content: 'index, follow' },
+        { name: 'theme-color', content: '#0f172a' },
+        { name: 'format-detection', content: 'telephone=no' },
+        { 'http-equiv': 'x-ua-compatible', content: 'IE=edge' },
         { property: 'og:title', content: 'Atlas Report — Global Intelligence Feed' },
         { property: 'og:description', content: 'Premium editorial coverage delivering verified reporting across geopolitics, science, and markets.' },
         { property: 'og:type', content: 'website' },
@@ -54,7 +62,10 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'canonical', href: 'https://atlasreport.com' }
+        { rel: 'canonical', href: 'https://atlasreport.com' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800;900&display=swap' }
       ]
     },
     pageTransition: { name: 'page', mode: 'out-in' }
@@ -73,12 +84,12 @@ export default defineNuxtConfig({
       start_url: '/',
       icons: [
         {
-          src: '/images/atlaslogo.png',
+          src: '/images/atlasreport.png',
           sizes: '192x192',
           type: 'image/png'
         },
         {
-          src: '/images/atlaslogo.png',
+          src: '/images/atlasreport.png',
           sizes: '512x512',
           type: 'image/png',
           purpose: 'any maskable'

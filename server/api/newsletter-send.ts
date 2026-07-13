@@ -2,6 +2,8 @@ import { defineEventHandler, readBody } from 'h3'
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event)
+
   const body = await readBody(event)
   const { subject, content, testEmail } = body
 
@@ -26,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
     // If test email, just send to that one email
     if (testEmail) {
-      const emailResult = await sendEmail(resendApiKey, testEmail, subject, content)
+      const emailResult = await sendEmail(resendApiKey, testEmail, subject, buildEmailContent(content, `${getBaseUrl(event)}/unsubscribe`))
       if (!emailResult.success) {
         return { success: false, error: emailResult.error }
       }
@@ -110,6 +112,9 @@ export default defineEventHandler(async (event) => {
 
 async function sendEmail(apiKey: string, to: string, subject: string, html: string) {
   try {
+    const fromAddress = process.env.NUXT_NEWSLETTER_FROM
+      || process.env.NUXT_PUBLIC_NEWSLETTER_FROM
+      || 'Atlas Report <newsletter@atlasreport.com>'
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -117,7 +122,7 @@ async function sendEmail(apiKey: string, to: string, subject: string, html: stri
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Atlas Report <newsletter@atlasreport.com>',
+        from: fromAddress,
         to: [to],
         subject,
         html
@@ -185,6 +190,8 @@ function buildEmailContent(content: string, unsubscribeUrl: string): string {
 }
 
 function getBaseUrl(event: any): string {
+  const configured = process.env.NUXT_PUBLIC_SITE_URL
+  if (configured) return configured.replace(/\/$/, '')
   const headers = event.node?.req?.headers
   const host = headers?.host || 'localhost:3000'
   const protocol = headers?.['x-forwarded-proto'] || 'http'

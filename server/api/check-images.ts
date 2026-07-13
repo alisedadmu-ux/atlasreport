@@ -2,6 +2,8 @@ import { defineEventHandler } from 'h3'
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event)
+
   const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NUXT_SUPABASE_SERVICE_KEY
 

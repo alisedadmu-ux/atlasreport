@@ -1,55 +1,31 @@
 <template>
-  <div class="min-h-screen" :style="{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }">
-    <main class="max-w-lg mx-auto px-6 py-16">
-      <div class="rounded-2xl border p-8" :style="{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
-        <div class="text-center mb-6">
-          <div class="text-4xl mb-3">🔑</div>
-          <h1 class="font-serif text-2xl font-black" :style="{ color: 'var(--color-text)' }">Reset your password</h1>
-          <p class="text-sm mt-2" :style="{ color: 'var(--color-text-secondary)' }">
-            Enter your email and we'll send you a recovery link.
-          </p>
-        </div>
+  <div class="auth-page">
+    <div class="site-container">
+      <div class="auth-card auth-card-centered">
+        <NuxtLink to="/" class="auth-logo" aria-label="Atlas Report — Home">
+          <img src="/images/atlasreport.png" alt="Atlas Report" class="auth-logo-img" />
+        </NuxtLink>
+        <p class="eyebrow">Account</p>
+        <h1 class="auth-title">Reset your password</h1>
+        <p class="auth-subtitle">Enter your email and we'll send you a recovery link.</p>
 
-        <form @submit.prevent="handleReset" class="space-y-4">
-          <div class="space-y-2">
-            <label class="text-sm font-semibold" :style="{ color: 'var(--color-text-secondary)' }">Email address</label>
-            <input
-              v-model="email"
-              type="email"
-              required
-              placeholder="name@example.com"
-              class="w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-slate-900"
-              :style="{
-                backgroundColor: 'var(--color-input-bg)',
-                borderColor: 'var(--color-input-border)',
-                color: 'var(--color-text)'
-              }"
-            />
+        <form @submit.prevent="handleReset" class="auth-form">
+          <div class="form-group">
+            <label for="email" class="form-label">Email address</label>
+            <input id="email" v-model="email" type="email" class="form-input" placeholder="name@example.com" required />
           </div>
 
-          <button
-            type="submit"
-            :disabled="loading"
-            class="w-full rounded-xl py-3 text-sm font-bold text-white transition"
-            :style="{
-              backgroundColor: 'var(--color-accent)',
-              opacity: loading ? 0.6 : 1
-            }"
-          >
+          <button type="submit" :disabled="loading" class="btn btn-primary btn-lg w-full">
             {{ loading ? 'Sending...' : 'Send recovery link' }}
           </button>
-
-          <p v-if="error" class="text-sm font-semibold text-center" :style="{ color: 'var(--color-accent)' }">{{ error }}</p>
-          <p v-if="success" class="text-sm font-semibold text-center text-emerald-600">{{ success }}</p>
         </form>
 
-        <div class="mt-6 text-center">
-          <NuxtLink to="/auth" class="text-xs font-bold hover:underline" :style="{ color: 'var(--color-accent)' }">
-            ← Back to sign in
-          </NuxtLink>
-        </div>
+        <p v-if="error" class="form-error">{{ error }}</p>
+        <p v-if="success" class="form-success">{{ success }}</p>
+
+        <NuxtLink to="/auth" class="back-link">Back to sign in</NuxtLink>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -64,26 +40,100 @@ const error = ref('')
 const success = ref('')
 
 const handleReset = async () => {
+  success.value = ''
+  error.value = ''
   if (!email.value.trim()) {
     error.value = 'Please enter your email address.'
     return
   }
-
   loading.value = true
-  error.value = ''
-  success.value = ''
-
-  const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.value.trim(), {
-    redirectTo: `${window.location.origin}/auth?type=recovery`
-  })
-
-  loading.value = false
-
-  if (resetError) {
-    error.value = resetError.message
-  } else {
-    success.value = 'Recovery link sent! Check your email inbox.'
-    email.value = ''
+  try {
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.value.trim(), {
+      redirectTo: `${window.location.origin}/auth?type=recovery`
+    })
+    if (resetError) {
+      error.value = resetError.message
+    } else {
+      success.value = 'Recovery link sent! Check your email inbox.'
+      email.value = ''
+    }
+  } catch (e) {
+    error.value = 'Something went wrong. Please try again.'
+  } finally {
+    loading.value = false
   }
 }
 </script>
+
+<style scoped>
+.auth-page {
+  min-height: 100vh;
+  padding: 3rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+}
+
+.auth-card-centered {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 2.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-base);
+}
+
+.auth-logo {
+  display: inline-flex;
+  margin: 0 auto 0.5rem;
+}
+
+.auth-logo-img {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+}
+
+.auth-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin: 0.25rem 0 0;
+}
+
+.auth-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.form-group {
+  text-align: left;
+}
+
+.back-link {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.w-full { width: 100%; }
+
+@media (max-width: 480px) {
+  .auth-card-centered {
+    padding: 1.75rem 1.25rem;
+  }
+}
+</style>

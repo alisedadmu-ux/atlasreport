@@ -1,9 +1,43 @@
-import { defineEventHandler, getQuery } from 'h3'
+import { defineEventHandler, getQuery, readBody, getRequestHeader, getMethod, createError } from 'h3'
 import { createClient } from '@supabase/supabase-js'
 
+function assertOrigin(event: any) {
+  const origin = getRequestHeader(event, 'origin') || getRequestHeader(event, 'referer') || ''
+  const siteOrigin = process.env.NUXT_APP_ORIGIN || process.env.NUXT_PUBLIC_SITE_URL || ''
+  if (siteOrigin) {
+    let expected: string
+    try {
+      expected = new URL(siteOrigin).origin
+    } catch {
+      return
+    }
+    if (!origin) {
+      throw createError({ statusCode: 403, statusMessage: 'Missing origin' })
+    }
+    let actual: string
+    try {
+      actual = new URL(origin).origin
+    } catch {
+      throw createError({ statusCode: 403, statusMessage: 'Missing origin' })
+    }
+    if (actual !== expected) {
+      throw createError({ statusCode: 403, statusMessage: 'Forbidden origin' })
+    }
+  }
+}
+
 export default defineEventHandler(async (event) => {
+  const method = getMethod(event)
+
+  if (method === 'POST') {
+    assertOrigin(event)
+  }
+
+  await requireAdmin(event)
+
+  const body = method === 'POST' ? await readBody(event) : {}
   const query = getQuery(event)
-  const action = query.action as string || 'subscribers'
+  const action = (body.action || query.action) as string || 'subscribers'
 
   const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NUXT_SUPABASE_SERVICE_KEY
@@ -112,7 +146,11 @@ export default defineEventHandler(async (event) => {
       }
 
       case 'delete-subscriber': {
-        const id = query.id as string
+        if (method !== 'POST') {
+          return { success: false, error: 'Method not allowed', methodNotAllowed: true }
+        }
+
+        const id = (body.id || query.id) as string
         if (!id) {
           return { success: false, error: 'Subscriber ID required' }
         }

@@ -1,61 +1,81 @@
 <template>
   <div class="community-page">
-    <section class="community-hero">
+    <!-- Hero Section -->
+    <section class="community-hero fade-in-up">
       <div class="hero-copy">
-        <p class="eyebrow">Community</p>
-        <h1>Atlas Report Community</h1>
-        <p>Join the discussion, share your perspective, and connect with fellow readers in a calm, thoughtful space.</p>
+        <div class="eyebrow">Community</div>
+        <h1 class="community-title">Atlas Report Community</h1>
+        <p class="community-subtitle">Join the discussion, share your perspective, and connect with fellow readers in a calm, thoughtful space.</p>
       </div>
-      <div class="hero-side">
-        <div class="insight-pill">Live conversations</div>
-        <div class="insight-card">
-          <span>Reader-led dialogue</span>
-          <strong>Fresh reactions from the Atlas audience</strong>
+      <div class="hero-stats">
+        <div class="stat-pill">
+          <span class="stat-value">{{ posts.length }}</span>
+          <span class="stat-label">Posts</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-value">{{ totalLikes }}</span>
+          <span class="stat-label">Likes</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-value">{{ totalComments }}</span>
+          <span class="stat-label">Comments</span>
         </div>
       </div>
     </section>
 
     <div class="community-grid">
       <div class="feed-column">
-        <div v-if="currentUser" class="composer-card">
-          <CreateCommunityPost
-            :currentUser="currentUser"
-            :currentUserId="currentUserId"
-            @post-created="handlePostCreated"
-          />
-        </div>
+        <CreateCommunityPost
+          v-if="currentUser"
+          :currentUser="currentUser"
+          :currentUserId="currentUserId"
+          @post-created="handlePostCreated"
+        />
 
-        <div v-else class="sign-in-card">
+        <div v-else class="sign-in-card fade-in-up stagger-1">
+          <div class="sign-in-card-icon">
+            <MessageCircle class="sign-in-icon" />
+          </div>
           <p>
-            <NuxtLink to="/auth">Sign in</NuxtLink> to create a post and join the conversation.
+            <NuxtLink to="/auth" class="link-accent">Sign in</NuxtLink> to create a post and join the conversation.
           </p>
         </div>
 
+        <!-- Feed Tabs -->
         <div class="tabs-row">
           <button
-            @click="feedTab = 'latest'"
-            :class="feedTab === 'latest' ? 'active' : ''"
+            v-for="tab in tabs"
+            :key="tab.key"
+            :class="['tab-btn', { 'tab-active': feedTab === tab.key }]"
+            @click="setTab(tab.key)"
           >
-            Latest
-          </button>
-          <button
-            @click="feedTab = 'following'"
-            :class="feedTab === 'following' ? 'active' : ''"
-          >
-            Following
-          </button>
-          <button
-            @click="feedTab = 'trending'"
-            :class="feedTab === 'trending' ? 'active' : ''"
-          >
-            Trending
+            {{ tab.label }}
           </button>
         </div>
 
-        <div v-if="loading" class="feed-stack">
-          <div v-for="i in 3" :key="i" class="skeleton-card"></div>
+        <!-- Topic Filter -->
+        <div v-if="topicFilter" class="topic-filter-bar">
+          <span>Showing <strong>#{{ topicFilter }}</strong></span>
+          <button class="topic-filter-clear" @click="clearTopic">Clear</button>
         </div>
 
+        <!-- Loading State -->
+        <div v-if="loading" class="feed-stack" aria-busy="true" aria-label="Loading community posts">
+          <div v-for="i in 3" :key="i" class="skeleton-card">
+            <div class="sk-avatar-row">
+              <div class="sk-avatar"></div>
+              <div>
+                <div class="sk-bone sk-bone-text" style="width: 120px;"></div>
+                <div class="sk-bone sk-bone-text" style="width: 80px; margin-top: 4px;"></div>
+              </div>
+            </div>
+            <div class="sk-bone sk-bone-title" style="width: 60%;"></div>
+            <div class="sk-bone sk-bone-text" style="width: 100%;"></div>
+            <div class="sk-bone sk-bone-text" style="width: 70%;"></div>
+          </div>
+        </div>
+
+        <!-- Feed Posts -->
         <div v-else-if="filteredPosts.length" class="feed-stack">
           <CommunityPostCard
             v-for="post in filteredPosts"
@@ -69,116 +89,104 @@
           />
         </div>
 
+        <!-- Empty State -->
         <div v-else class="empty-state">
-          <div class="empty-emoji">📭</div>
-          <p>
-            <template v-if="feedTab === 'following'">
-              No posts from people you follow yet. Follow some users to see their posts here.
-            </template>
-            <template v-else>
-              No community posts yet. Be the first to start a discussion.
-            </template>
+          <div class="empty-icon">
+            <MessageCircle class="empty-icon-svg" />
+          </div>
+          <p class="empty-title">No posts yet</p>
+          <p class="empty-desc" v-if="feedTab === 'following'">
+            Follow some users to see their posts here.
+          </p>
+          <p class="empty-desc" v-else>
+            Be the first to start a discussion.
           </p>
         </div>
       </div>
 
+      <!-- Sidebar -->
       <aside class="side-column">
         <div class="panel-card">
-          <h3>Trending topics</h3>
+          <h3 class="panel-heading">Trending topics</h3>
           <div v-if="trendingTopics.length" class="topic-list">
-            <button
-              v-for="topic in trendingTopics"
-              :key="topic"
-              @click="searchTopic(topic)"
-            >
-              #{{ topic }}
+            <button v-for="topic in trendingTopics" :key="topic" @click="searchTopic(topic)">
+              <span class="topic-hash">#</span>
+              {{ topic }}
             </button>
           </div>
           <p v-else class="muted">No trending topics yet.</p>
         </div>
 
-        <div class="panel-card">
-          <h3>Who to follow</h3>
-          <div v-if="suggestedUsers.length" class="people-list">
-            <div v-for="user in suggestedUsers" :key="user.id" class="person-row">
+        <div v-if="suggestedUsers.length" class="panel-card">
+          <h3 class="panel-heading">Who to follow</h3>
+          <div class="people-list">
+            <div v-for="user in suggestedUsers" :key="user.user_id" class="person-row">
               <NuxtLink :to="`/community/profile/${user.user_id}`" class="person-avatar">
-                <div :style="{ background: user.color }">
-                  {{ getInitials(user.display_name || user.email || 'U') }}
-                </div>
+                <div :style="{ background: user.color }">{{ getInitials(user.display_name || user.email || 'U') }}</div>
               </NuxtLink>
               <div class="person-info">
-                <NuxtLink :to="`/community/profile/${user.user_id}`">
+                <NuxtLink :to="`/community/profile/${user.user_id}`" class="person-name">
                   {{ user.display_name || user.email?.split('@')[0] || 'User' }}
                 </NuxtLink>
-                <p v-if="user.bio">{{ user.bio }}</p>
               </div>
-              <button @click="quickFollow(user.user_id)">Follow</button>
+              <button @click="quickFollow(user.user_id)" class="btn btn-secondary btn-sm">Follow</button>
             </div>
           </div>
-          <p v-else class="muted">No suggestions yet.</p>
         </div>
 
         <div v-if="currentUser" class="panel-card stats-card">
-          <h3>Your stats</h3>
+          <h3 class="panel-heading">Your activity</h3>
           <div class="stats-grid">
-            <div>
-              <strong>{{ userStats.posts }}</strong>
-              <span>Posts</span>
+            <div class="stat-item">
+              <span class="stat-value">{{ userStats.posts }}</span>
+              <span class="stat-label">Posts</span>
             </div>
-            <div>
-              <strong>{{ userStats.followers }}</strong>
-              <span>Followers</span>
+            <div class="stat-item">
+              <span class="stat-value">{{ userStats.followers }}</span>
+              <span class="stat-label">Followers</span>
             </div>
-            <div>
-              <strong>{{ userStats.following }}</strong>
-              <span>Following</span>
+            <div class="stat-item">
+              <span class="stat-value">{{ userStats.following }}</span>
+              <span class="stat-label">Following</span>
             </div>
-            <div>
-              <strong>{{ userStats.likes }}</strong>
-              <span>Likes</span>
+            <div class="stat-item">
+              <span class="stat-value">{{ userStats.likes }}</span>
+              <span class="stat-label">Likes</span>
             </div>
           </div>
         </div>
       </aside>
     </div>
 
+    <!-- Comments Modal -->
     <Teleport to="body">
       <div
         v-if="commentsModalPost"
-        class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+        class="modal-overlay"
         @click.self="closeCommentsModal"
+        @keydown.esc="closeCommentsModal"
+        tabindex="-1"
       >
-        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" @click="closeCommentsModal"></div>
-        <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
-          <div class="flex items-center justify-between p-4 border-b border-slate-200 shrink-0">
-            <h3 class="text-sm font-black text-slate-900">Comments</h3>
-            <button
-              @click="closeCommentsModal"
-              class="text-slate-400 hover:text-slate-600 transition-colors p-1"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
+        <div class="modal-backdrop" @click="closeCommentsModal"></div>
+        <div class="modal-shell" role="dialog" aria-modal="true" aria-label="Comments">
+          <div class="modal-header">
+            <h3 class="modal-title">Comments</h3>
+            <button @click="closeCommentsModal" class="modal-close" aria-label="Close comments">
+              <X class="modal-icon" />
             </button>
           </div>
 
-          <div class="p-4 border-b border-slate-100 bg-slate-50 shrink-0">
-            <div class="flex items-center gap-2 mb-1">
-              <div
-                class="flex h-6 w-6 items-center justify-center rounded-full text-[8px] font-bold text-white"
-                :style="{ background: commentsModalPost.authorColor }"
-              >
-                {{ getInitials(commentsModalPost.author_name || commentsModalPost.author_email || 'A') }}
-              </div>
-              <span class="text-xs font-bold text-slate-900">{{ commentsModalPost.author_name || commentsModalPost.author_email?.split('@')[0] || 'Anonymous' }}</span>
-            </div>
-            <p class="text-xs text-slate-600 leading-relaxed">{{ commentsModalPost.content }}</p>
-          </div>
+          <div class="modal-preview">
+             <div class="preview-avatar">
+               <div :style="{ background: commentsModalPost.authorColor }">{{ getInitials(commentsModalPost.author_name || 'A') }}</div>
+             </div>
+             <p class="preview-text">{{ commentsModalPost.content }}</p>
+           </div>
 
-          <div class="p-4 overflow-y-auto flex-1">
+           <div class="modal-content">
             <PostComments
               :postId="commentsModalPost.id"
-              :postAuthor="commentsModalPost.author_name || commentsModalPost.author_email?.split('@')[0] || 'Anonymous'"
+              :postAuthor="commentsModalPost.author_name || 'Anonymous'"
               :currentUser="currentUser"
               :currentUserId="currentUserId"
             />
@@ -190,7 +198,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { getInitials, getAccentColor } from '~/utils/format'
+import { MessageCircle, X } from '@lucide/vue'
 
 const supabase = useSupabaseClient()
 
@@ -199,39 +209,41 @@ const loading = ref(true)
 const currentUser = ref(null)
 const currentUserId = ref(null)
 const feedTab = ref('latest')
+const topicFilter = ref('')
 const commentsModalPost = ref(null)
+const suggestedUsers = ref([])
+const userStats = ref({ posts: 0, followers: 0, following: 0, likes: 0 })
 
-const accentColors = ['#0f172a', '#b91c1c', '#047857', '#b45309', '#1d4ed8', '#7c3aed']
+const tabs = computed(() => [
+  { key: 'latest', label: 'Latest' },
+  { key: 'following', label: 'Following' },
+  { key: 'trending', label: 'Trending' }
+])
 
-const getInitials = (name) => {
-  return name
-    .split(/[ @._-]/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('')
-}
+const totalLikes = computed(() => posts.value.reduce((sum, p) => sum + (p.like_count || 0), 0))
+const totalComments = computed(() => posts.value.reduce((sum, p) => sum + (p.comment_count || 0), 0))
 
-// Filter posts based on active tab
 const filteredPosts = computed(() => {
-  if (feedTab.value === 'latest') {
-    return posts.value
-  } else if (feedTab.value === 'following') {
-    return posts.value.filter(p => p.is_following || p.user_id === currentUserId.value)
-  } else {
-    // Trending: sort by like count
-    return [...posts.value].sort((a, b) => (b.like_count || 0) - (a.like_count || 0))
+  let list = posts.value
+  if (topicFilter.value) {
+    const q = topicFilter.value.toLowerCase()
+    list = list.filter(p => `${p.title} ${p.content}`.toLowerCase().includes(q))
   }
+  if (feedTab.value === 'following') {
+    return list.filter(p => p.is_following || p.user_id === currentUserId.value)
+  } else if (feedTab.value === 'trending') {
+    return [...list].sort((a, b) => (b.like_count || 0) - (a.like_count || 0))
+  }
+  return list
 })
 
-// Trending topics extracted from post content
 const trendingTopics = computed(() => {
   const wordCounts = {}
   posts.value.forEach(post => {
     const words = (post.title + ' ' + post.content).toLowerCase().split(/\s+/)
     words.forEach(word => {
       const clean = word.replace(/[^a-z0-9]/g, '')
-      if (clean.length > 4 && !['this', 'that', 'with', 'from', 'have', 'been', 'were', 'what', 'when', 'where', 'which', 'their', 'there', 'about', 'would', 'could', 'should'].includes(clean)) {
+      if (clean.length > 4 && !['this', 'that', 'with', 'from', 'have', 'been', 'were', 'what', 'when', 'where', 'which', 'their', 'there', 'about', 'would', 'could', 'should', 'just', 'more', 'some', 'into'].includes(clean)) {
         wordCounts[clean] = (wordCounts[clean] || 0) + 1
       }
     })
@@ -242,74 +254,8 @@ const trendingTopics = computed(() => {
     .map(([word]) => word)
 })
 
-// Suggested users (people with most posts who current user doesn't follow)
-const suggestedUsers = ref([])
-
-// User stats
-const userStats = ref({ posts: 0, followers: 0, following: 0, likes: 0 })
-
-const fetchPosts = async () => {
-  loading.value = true
-
-  // Get posts with like counts and comment counts
-  const { data, error } = await supabase
-    .from('community_posts')
-    .select(`
-      *,
-      post_likes:post_likes(count),
-      post_comments:post_comments(count)
-    `)
-    .order('created_at', { ascending: false })
-
-  if (!error && data) {
-    // Check if user liked each post and follows each author
-    let enrichedPosts = data.map(post => ({
-      ...post,
-      like_count: post.post_likes?.[0]?.count || 0,
-      comment_count: post.post_comments?.[0]?.count || 0,
-      authorColor: accentColors[Math.floor(Math.random() * accentColors.length)]
-    }))
-
-    // If logged in, check likes and follows
-    if (currentUserId.value) {
-      const postIds = enrichedPosts.map(p => p.id)
-      const authorIds = [...new Set(enrichedPosts.map(p => p.user_id).filter(id => id !== currentUserId.value))]
-
-      // Check likes
-      const { data: likes } = await supabase
-        .from('post_likes')
-        .select('post_id')
-        .in('post_id', postIds)
-        .eq('user_id', currentUserId.value)
-
-      const likedPostIds = new Set(likes?.map(l => l.post_id) || [])
-
-      // Check follows
-      const { data: follows } = await supabase
-        .from('follows')
-        .select('following_id')
-        .in('following_id', authorIds)
-        .eq('follower_id', currentUserId.value)
-
-      const followedUserIds = new Set(follows?.map(f => f.following_id) || [])
-
-      enrichedPosts = enrichedPosts.map(post => ({
-        ...post,
-        user_liked: likedPostIds.has(post.id),
-        is_following: followedUserIds.has(post.user_id)
-      }))
-    }
-
-    posts.value = enrichedPosts
-  }
-
-  loading.value = false
-}
-
 const fetchSuggestedUsers = async () => {
   if (!currentUserId.value) return
-
-  // Get users who have posted, excluding current user
   const { data: postAuthors } = await supabase
     .from('community_posts')
     .select('user_id, author_name, author_email')
@@ -318,7 +264,6 @@ const fetchSuggestedUsers = async () => {
 
   if (!postAuthors) return
 
-  // Get unique authors
   const uniqueAuthors = []
   const seen = new Set()
   postAuthors.forEach(a => {
@@ -328,38 +273,27 @@ const fetchSuggestedUsers = async () => {
     }
   })
 
-  // Check which ones current user already follows
   const authorIds = uniqueAuthors.map(a => a.user_id)
-  const { data: follows } = await supabase
-    .from('follows')
-    .select('following_id')
-    .in('following_id', authorIds)
-    .eq('follower_id', currentUserId.value)
-
+  const { data: follows } = await supabase.from('follows').select('following_id').in('following_id', authorIds).eq('follower_id', currentUserId.value)
   const followedIds = new Set(follows?.map(f => f.following_id) || [])
 
-  // Get profiles for suggested users
-  const notFollowed = uniqueAuthors.filter(a => !followedIds.has(a.user_id)).slice(0, 3)
-
-  suggestedUsers.value = notFollowed.map(u => ({
+  suggestedUsers.value = uniqueAuthors.filter(a => !followedIds.has(a.user_id)).slice(0, 3).map(u => ({
     user_id: u.user_id,
     display_name: u.author_name,
     email: u.author_email,
     bio: '',
-    color: accentColors[Math.floor(Math.random() * accentColors.length)]
+    color: getAccentColor(u.user_id)
   }))
 }
 
 const fetchUserStats = async () => {
   if (!currentUserId.value) return
-
   const [postsRes, followersRes, followingRes, likesRes] = await Promise.all([
     supabase.from('community_posts').select('id', { count: 'exact', head: true }).eq('user_id', currentUserId.value),
     supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', currentUserId.value),
     supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', currentUserId.value),
     supabase.from('post_likes').select('id', { count: 'exact', head: true }).eq('user_id', currentUserId.value)
   ])
-
   userStats.value = {
     posts: postsRes.count || 0,
     followers: followersRes.count || 0,
@@ -368,21 +302,17 @@ const fetchUserStats = async () => {
   }
 }
 
-const handlePostCreated = () => {
-  fetchPosts()
-  fetchUserStats()
-  fetchSuggestedUsers()
+const handlePostCreated = async () => {
+  await fetchPosts()
+  await fetchUserStats()
+  await fetchSuggestedUsers()
 }
 
 const deletePost = async (postId) => {
-  const { error } = await supabase
-    .from('community_posts')
-    .delete()
-    .eq('id', postId)
-
+  const { error } = await supabase.from('community_posts').delete().eq('id', postId)
   if (!error) {
     posts.value = posts.value.filter(p => p.id !== postId)
-    fetchUserStats()
+    await fetchUserStats()
   }
 }
 
@@ -394,45 +324,87 @@ const closeCommentsModal = () => {
   commentsModalPost.value = null
 }
 
-const handleFollowChanged = ({ userId, following }) => {
-  // Update is_following on posts
-  posts.value = posts.value.map(p => {
-    if (p.user_id === userId) {
-      return { ...p, is_following: following }
-    }
-    return p
-  })
-  fetchSuggestedUsers()
-  fetchUserStats()
+const handleFollowChanged = async ({ userId, following }) => {
+  posts.value = posts.value.map(p => (p.user_id === userId ? { ...p, is_following: following } : p))
+  await fetchSuggestedUsers()
+  await fetchUserStats()
 }
 
 const quickFollow = async (userId) => {
   if (!currentUser.value) return
-
-  const { error } = await supabase
-    .from('follows')
-    .insert({ follower_id: currentUserId.value, following_id: userId })
-
+  const { error } = await supabase.from('follows').insert({ follower_id: currentUserId.value, following_id: userId })
   if (!error) {
     suggestedUsers.value = suggestedUsers.value.filter(u => u.user_id !== userId)
-    // Update posts
-    posts.value = posts.value.map(p => {
-      if (p.user_id === userId) {
-        return { ...p, is_following: true }
-      }
-      return p
-    })
-    fetchUserStats()
+    posts.value = posts.value.map(p => (p.user_id === userId ? { ...p, is_following: true } : p))
+    await fetchUserStats()
   }
 }
 
 const searchTopic = (topic) => {
+  topicFilter.value = topic
   feedTab.value = 'latest'
-  // Simple scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+const setTab = (key) => {
+  feedTab.value = key
+  topicFilter.value = ''
+}
+
+const clearTopic = () => { topicFilter.value = '' }
+
 let subscription = null
+let feedDebounceTimer = null
+let feedRequestId = 0
+
+function scheduleFeedRefresh() {
+  if (feedDebounceTimer) clearTimeout(feedDebounceTimer)
+  feedDebounceTimer = setTimeout(() => fetchPosts(false), 400)
+}
+
+const fetchPosts = async (showLoading = true) => {
+  const requestId = ++feedRequestId
+  if (showLoading) loading.value = true
+  const { data, error } = await supabase
+    .from('community_posts')
+    .select(`
+      *,
+      post_likes:post_likes(count),
+      post_comments:post_comments(count)
+    `)
+    .order('created_at', { ascending: false })
+
+  if (!error && data) {
+    let enrichedPosts = data.map(post => ({
+      ...post,
+      like_count: post.post_likes?.[0]?.count || 0,
+      comment_count: post.post_comments?.[0]?.count || 0,
+      authorColor: getAccentColor(post.author_name || post.author_email || post.id)
+    }))
+
+    if (currentUserId.value) {
+      const postIds = enrichedPosts.map(p => p.id)
+      const authorIds = [...new Set(enrichedPosts.map(p => p.user_id).filter(id => id !== currentUserId.value))]
+
+      const { data: likes } = await supabase.from('post_likes').select('post_id').in('post_id', postIds).eq('user_id', currentUserId.value)
+      const likedPostIds = new Set(likes?.map(l => l.post_id) || [])
+
+      const { data: follows } = await supabase.from('follows').select('following_id').in('following_id', authorIds).eq('follower_id', currentUserId.value)
+      const followedUserIds = new Set(follows?.map(f => f.following_id) || [])
+
+      enrichedPosts = enrichedPosts.map(post => ({
+        ...post,
+        user_liked: likedPostIds.has(post.id),
+        is_following: followedUserIds.has(post.user_id)
+      }))
+    }
+
+    if (requestId === feedRequestId) {
+      posts.value = enrichedPosts
+    }
+  }
+  loading.value = false
+}
 
 onMounted(async () => {
   const { data: { session } } = await supabase.auth.getSession()
@@ -447,128 +419,99 @@ onMounted(async () => {
     await fetchUserStats()
   }
 
-  // Real-time subscription
   subscription = supabase
     .channel('community_feed')
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'community_posts'
-    }, async () => {
-      await fetchPosts()
-    })
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'post_likes'
-    }, async () => {
-      await fetchPosts()
-    })
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'post_comments'
-    }, async () => {
-      await fetchPosts()
-    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, scheduleFeedRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'post_likes' }, scheduleFeedRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'post_comments' }, scheduleFeedRefresh)
     .subscribe()
 })
 
 onBeforeUnmount(() => {
-  if (subscription) {
-    supabase.removeChannel(subscription)
-  }
+  if (feedDebounceTimer) clearTimeout(feedDebounceTimer)
+  if (subscription) supabase.removeChannel(subscription)
 })
 </script>
 
 <style scoped>
 .community-page {
-  padding: 1rem 0 2rem;
+  padding: 2rem 0;
 }
 
+/* ===== Hero ===== */
 .community-hero {
-  display: grid;
-  grid-template-columns: 1.6fr 0.9fr;
-  gap: 1.25rem;
-  padding: 2rem;
-  margin-bottom: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.75rem;
+  padding: 1.75rem 2.25rem;
+  margin-bottom: 2rem;
   border: 1px solid var(--color-border);
-  border-radius: 32px;
-  background: linear-gradient(135deg, #fffdf8 0%, #f5ebdc 100%);
-  box-shadow: 0 18px 60px rgba(17, 17, 17, 0.05);
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(135deg, var(--color-bg-alt) 0%, var(--color-bg) 100%);
+  flex-wrap: wrap;
 }
 
-.hero-copy h1 {
-  margin: 0.35rem 0 0.7rem;
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  line-height: 1.05;
-  font-weight: 800;
-  color: #111111;
-  font-family: 'Playfair Display', serif;
-}
-
-.hero-copy p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  line-height: 1.7;
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
   max-width: 640px;
 }
 
-.eyebrow {
-  font-size: 0.76rem;
+.community-title {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  line-height: 1.15;
+  margin: 0.25rem 0 0.6rem;
+  font-family: 'Playfair Display', Georgia, serif;
   font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--color-accent);
 }
 
-.hero-side {
+.community-subtitle {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.85rem 1.35rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  box-shadow: var(--shadow-xs);
 }
 
-.insight-pill {
-  display: inline-flex;
-  align-self: flex-start;
-  padding: 0.5rem 0.8rem;
-  border-radius: 999px;
-  background: rgba(17, 17, 17, 0.06);
-  color: #222222;
-  font-size: 0.74rem;
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.insight-card {
-  border-radius: 20px;
-  border: 1px solid rgba(232, 224, 212, 0.9);
-  background: rgba(255, 255, 255, 0.78);
-  padding: 1rem 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.insight-card span {
   color: var(--color-text-muted);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.22em;
 }
 
-.insight-card strong {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #111111;
-}
-
+/* ===== Grid ===== */
 .community-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) 320px;
-  gap: 1.2rem;
+  grid-template-columns: minmax(0, 1.75fr) 320px;
+  gap: 1.5rem;
+  align-items: start;
 }
 
 .feed-column,
@@ -578,28 +521,30 @@ onBeforeUnmount(() => {
   gap: 1rem;
 }
 
-.composer-card,
-.sign-in-card,
-.panel-card,
-.empty-state,
-.skeleton-card {
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(17, 17, 17, 0.04);
-}
-
-.composer-card,
-.sign-in-card,
-.panel-card {
-  padding: 1rem;
-}
-
-.sign-in-card p,
-.muted {
-  margin: 0;
+/* ===== Composer ===== */
+.sign-in-card {
+  border: 1px dashed var(--color-border);
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  text-align: center;
   color: var(--color-text-secondary);
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sign-in-card-icon {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.sign-in-icon {
+  width: 32px;
+  height: 32px;
+  stroke-width: 1.5;
 }
 
 .sign-in-card a {
@@ -607,181 +552,451 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 
+/* ===== Tabs ===== */
 .tabs-row {
   display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  padding: 0.25rem 0;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+  width: 100%;
+  margin-bottom: 1.25rem;
+  padding: 0;
 }
 
-.tabs-row button {
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.75);
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
   color: var(--color-text-secondary);
-  padding: 0.6rem 0.95rem;
-  border-radius: 999px;
-  font-size: 0.88rem;
+  font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 44px;
+  font-family: inherit;
+  margin-bottom: -1px;
 }
 
-.tabs-row button.active {
-  background: #111111;
-  color: white;
-  border-color: #111111;
+.tab-btn:hover {
+  color: var(--color-text);
+  border-bottom-color: var(--color-text-muted);
 }
 
+.tab-active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.tab-active:hover {
+  color: var(--color-accent-hover);
+  border-bottom-color: var(--color-accent-hover);
+}
+
+/* ===== Topic Filter ===== */
+.topic-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1rem;
+}
+
+.topic-filter-bar strong {
+  color: var(--color-text);
+}
+
+.topic-filter-clear {
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+  font-family: inherit;
+}
+
+.topic-filter-clear:hover {
+  background: var(--color-accent-subtle);
+}
+
+/* ===== Feed ===== */
 .feed-stack {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.85rem;
 }
 
 .skeleton-card {
-  min-height: 160px;
-  padding: 1rem;
-  background: linear-gradient(90deg, #f0e8da 0%, #f8f4ea 50%, #f0e8da 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.3s infinite;
-}
-
-.empty-state {
-  padding: 2rem 1rem;
-  text-align: center;
-}
-
-.empty-emoji {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.panel-card h3 {
-  margin: 0 0 0.8rem;
-  font-size: 0.95rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: #111111;
-}
-
-.topic-list,
-.people-list {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  background: var(--color-bg-alt);
+}
+
+.sk-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.sk-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.sk-bone {
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.sk-bone-text {
+  height: 12px;
+  border-radius: 9999px;
+}
+
+.sk-bone-title {
+  height: 14px;
+  border-radius: var(--radius-sm);
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  padding: 3.5rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-alt);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.empty-icon {
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+  opacity: 0.7;
+}
+
+.empty-icon-svg {
+  width: 48px;
+  height: 48px;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.empty-title {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.empty-desc {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  max-width: 380px;
+}
+
+/* ===== Panel Cards ===== */
+.panel-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.panel-heading {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  margin-bottom: 0.85rem;
+}
+
+.topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .topic-list button {
   width: 100%;
   text-align: left;
-  border: 0;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.9375rem;
   font-weight: 600;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  padding: 0.35rem 0;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.topic-list button:hover {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border-color: var(--color-accent-light);
+}
+
+.topic-hash {
+  color: var(--color-accent);
+  font-weight: 800;
+  margin-right: 0.15rem;
+}
+
+.people-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
 .person-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 .person-avatar {
   flex-shrink: 0;
+  text-decoration: none;
 }
 
 .person-avatar div {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.72rem;
+  font-size: 0.625rem;
   font-weight: 800;
 }
 
 .person-info {
-  min-width: 0;
   flex: 1;
+  min-width: 0;
 }
 
-.person-info a {
+.person-name {
   display: block;
-  font-size: 0.84rem;
+  font-size: 0.875rem;
   font-weight: 700;
-  color: #111111;
+  color: var(--color-text);
+  text-decoration: none;
 }
 
-.person-info p {
-  margin: 0.2rem 0 0;
-  font-size: 0.72rem;
-  color: var(--color-text-muted);
-}
-
-.person-row button {
-  border: 1px solid var(--color-border);
-  background: white;
-  color: #111111;
-  padding: 0.4rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  cursor: pointer;
+.person-name:hover {
+  color: var(--color-accent);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
+  gap: 0.6rem;
 }
 
-.stats-grid div {
+.stat-item {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  padding: 0.75rem;
-  border-radius: 16px;
-  background: #f8f4ea;
+  padding: 0.85rem;
+  border-radius: var(--radius-base);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
 }
 
-.stats-grid strong {
-  font-size: 1rem;
-  color: #111111;
-}
-
-.stats-grid span {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+.muted {
   color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+/* ===== Modal ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modal-shell {
+  position: relative;
+  width: 100%;
+  max-width: 32rem;
+  max-height: 80vh;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  animation: modalSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+.modal-icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.modal-preview {
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  background: var(--color-bg-alt);
+  flex-shrink: 0;
+}
+
+.preview-avatar div {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.5rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.preview-text {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1.25rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .modal-overlay {
+    align-items: center;
+  }
+
+  .modal-shell {
+    border-radius: var(--radius-lg);
+  }
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 1024px) {
-  .community-hero,
   .community-grid {
     grid-template-columns: 1fr;
+  }
+
+  .side-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 640px) {
+  .community-page {
+    padding: 1rem 1rem;
+  }
+
   .community-hero {
-    padding: 1.2rem;
-    border-radius: 22px;
+    padding: 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .side-column {
+    grid-template-columns: 1fr;
   }
 
   .stats-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

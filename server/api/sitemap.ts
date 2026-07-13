@@ -38,14 +38,33 @@ export default defineEventHandler(async (event) => {
 
   const allPages = [...staticPages, ...articlePages]
 
+  const siteUrl = (process.env.NUXT_PUBLIC_SITE_URL || 'https://atlasreport.com').replace(/\/$/, '')
+
+  const escapeXml = (value: string) =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;')
+
+  const safeIsoDate = (value: unknown): string => {
+    if (!value) return ''
+    const time = Date.parse(String(value))
+    return Number.isNaN(time) ? '' : new Date(time).toISOString()
+  }
+
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allPages.map(p => `  <url>
-    <loc>https://atlasreport.com${p.loc}</loc>
+${allPages.map(p => {
+    const lastmod = safeIsoDate((p as { lastmod?: unknown }).lastmod)
+    return `  <url>
+    <loc>${escapeXml(siteUrl + p.loc)}</loc>
     <priority>${p.priority}</priority>
     <changefreq>${p.changefreq}</changefreq>
-    ${p.lastmod ? `<lastmod>${new Date(p.lastmod).toISOString()}</lastmod>` : ''}
-  </url>`).join('\n')}
+    ${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}
+  </url>`
+  }).join('\n')}
 </urlset>`
 
   event.node.res.setHeader('Content-Type', 'application/xml')

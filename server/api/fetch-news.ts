@@ -1,5 +1,31 @@
-import { defineEventHandler, getQuery } from 'h3'
+import { defineEventHandler, getQuery, getRequestHeader, getMethod, createError } from 'h3'
 import { createClient } from '@supabase/supabase-js'
+import { getAdminEmails, requireAdmin } from '../utils/adminAuth'
+
+function assertOrigin(event: any) {
+  const origin = getRequestHeader(event, 'origin') || getRequestHeader(event, 'referer') || ''
+  const siteOrigin = process.env.NUXT_APP_ORIGIN || process.env.NUXT_PUBLIC_SITE_URL || ''
+  if (siteOrigin) {
+    let expected: string
+    try {
+      expected = new URL(siteOrigin).origin
+    } catch {
+      return
+    }
+    if (!origin) {
+      throw createError({ statusCode: 403, statusMessage: 'Missing origin' })
+    }
+    let actual: string
+    try {
+      actual = new URL(origin).origin
+    } catch {
+      throw createError({ statusCode: 403, statusMessage: 'Missing origin' })
+    }
+    if (actual !== expected) {
+      throw createError({ statusCode: 403, statusMessage: 'Forbidden origin' })
+    }
+  }
+}
 
 // RSS feed sources mapped to our categories
 const RSS_FEEDS = [
@@ -29,19 +55,31 @@ const FALLBACK_IMAGES: Record<string, string> = {
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const apiKey = query.key as string
-  
-  // Auth check
-  const secretKey = process.env.NUXT_RSS_SECRET || 'atlas-rss-secret'
-  if (apiKey !== secretKey) {
+
+  assertOrigin(event)
+
+  const adminEmails = getAdminEmails()
+  if (!adminEmails.length) {
     return { success: false, error: 'Unauthorized' }
   }
 
   const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NUXT_SUPABASE_SERVICE_KEY
-  
+
   if (!supabaseUrl || !serviceKey) {
     return { success: false, error: 'Missing Supabase service role key. Add SUPABASE_SERVICE_ROLE_KEY to your .env.local' }
+  }
+
+  let userEmail = ''
+  try {
+    const adminUser = await requireAdmin(event)
+    userEmail = adminUser.email || ''
+  } catch {
+    return { success: false, error: 'Authentication required' }
+  }
+
+  if (!userEmail || !adminEmails.map(e => e.toLowerCase()).includes(userEmail.toLowerCase())) {
+    return { success: false, error: 'Admin role required' }
   }
 
   try {

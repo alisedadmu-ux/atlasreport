@@ -1,70 +1,51 @@
 <template>
-  <div>
-    <!-- Comments list -->
-    <div v-if="comments.length" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-      <div
-        v-for="comment in comments"
-        :key="comment.id"
-        class="flex gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-100"
-      >
-        <div
-          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-          :style="{ background: comment.authorColor }"
-        >
-          {{ getInitials(comment.author_name || comment.user_email || 'A') }}
+  <div class="post-comments">
+    <div v-if="comments.length" class="comments-list">
+      <div v-for="comment in comments" :key="comment.id" class="comment-list-item">
+        <div class="comment-list-avatar">
+          <div :style="{ background: comment.authorColor }">{{ getInitials(comment.author_name || 'A') }}</div>
         </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-slate-900 truncate">
-              {{ comment.author_name || comment.user_email?.split('@')[0] || 'Anonymous' }}
-            </span>
-            <span class="text-[10px] text-slate-400">{{ formatTime(comment.created_at) }}</span>
-          </div>
-          <p class="mt-0.5 text-xs text-slate-700 leading-relaxed">{{ comment.content }}</p>
+        <div class="comment-list-body">
+          <div class="comment-list-header">
+             <span class="comment-list-author">{{ comment.author_name || 'Anonymous' }}</span>
+             <time class="comment-list-time">{{ formatTime(comment.created_at) }}</time>
+           </div>
+          <p class="comment-list-text">{{ comment.content }}</p>
         </div>
-        <button
-          v-if="comment.user_id === currentUserId"
-          @click="deleteComment(comment.id)"
-          class="shrink-0 text-[10px] text-slate-400 hover:text-red-500 transition-colors self-start mt-0.5"
-          title="Delete comment"
-        >
-          ✕
+        <button v-if="comment.user_id === currentUserId" @click="deleteComment(comment.id)" class="comment-list-delete" aria-label="Delete comment">
+          <X class="delete-icon" />
         </button>
       </div>
     </div>
 
-    <p v-else class="text-xs text-slate-400 text-center py-6">
-      No comments yet. Be the first to reply.
+    <p v-else class="empty-comments">No comments yet. Be the first to reply.</p>
+
+    <template v-if="currentUser">
+      <form @submit.prevent="submitComment" class="comment-form">
+        <input
+          v-model="newComment"
+          type="text"
+          class="comment-input form-input"
+          :placeholder="`Reply to ${postAuthor}...`"
+          required
+        />
+        <button type="submit" :disabled="commentLoading || !newComment.trim()" class="btn btn-primary btn-sm">
+          {{ commentLoading ? '...' : 'Reply' }}
+        </button>
+      </form>
+      <p v-if="commentError" class="error-text">{{ commentError }}</p>
+    </template>
+
+    <p v-else class="signin-prompt">
+      <NuxtLink to="/auth" class="link-accent">Sign in</NuxtLink> to reply.
     </p>
-
-    <!-- Comment input -->
-    <form v-if="currentUser" @submit.prevent="submitComment" class="mt-3 flex gap-2">
-      <input
-        v-model="newComment"
-        type="text"
-        class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none transition focus:border-slate-900"
-        :placeholder="`Reply to ${postAuthor}...`"
-        required
-      />
-      <button
-        type="submit"
-        :disabled="commentLoading || !newComment.trim()"
-        class="rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-slate-800 disabled:opacity-50 shrink-0"
-      >
-        {{ commentLoading ? '...' : 'Reply' }}
-      </button>
-    </form>
-
-    <p v-else class="mt-3 text-xs text-slate-400 italic text-center">
-      <NuxtLink to="/auth" class="text-red-700 font-semibold hover:underline">Sign in</NuxtLink> to reply.
-    </p>
-
-    <p v-if="commentError" class="mt-2 text-xs font-semibold text-rose-500">{{ commentError }}</p>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { getInitials, formatRelativeTime, getAccentColor } from '~/utils/format'
+import { X } from '@lucide/vue'
 
 const props = defineProps({
   postId: { type: String, required: true },
@@ -80,108 +61,220 @@ const newComment = ref('')
 const commentLoading = ref(false)
 const commentError = ref('')
 
-const accentColors = ['#0f172a', '#b91c1c', '#047857', '#b45309', '#1d4ed8', '#7c3aed']
-
-const getInitials = (name) => {
-  return name
-    .split(/[ @._-]/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('')
-}
-
-const formatTime = (timestamp) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now - date
-  const mins = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m`
-  if (hours < 24) return `${hours}h`
-  if (days < 7) return `${days}d`
-  return date.toLocaleDateString()
-}
+const formatTime = (timestamp) => formatRelativeTime(timestamp)
 
 const fetchComments = async () => {
   const { data, error } = await supabase
     .from('post_comments')
-    .select('*')
+    .select('id, post_id, user_id, author_name, content, created_at')
     .eq('post_id', props.postId)
     .order('created_at', { ascending: true })
-
   if (!error && data) {
-    comments.value = data.map(comment => ({
-      ...comment,
-      authorColor: accentColors[Math.floor(Math.random() * accentColors.length)]
-    }))
+    comments.value = data.map(c => ({ ...c, authorColor: getAccentColor(c.author_name || c.user_id || c.id) }))
   }
 }
 
-const submitComment = async () => {
+  const submitComment = async () => {
   if (!newComment.value.trim() || !props.currentUser) return
-
   commentLoading.value = true
   commentError.value = ''
-
   const authorName = props.currentUser.user_metadata?.display_name || props.currentUser.user_metadata?.full_name || ''
-
-  const { error } = await supabase
-    .from('post_comments')
-    .insert({
-      post_id: props.postId,
-      user_id: props.currentUser.id,
-      content: newComment.value.trim(),
-      author_name: authorName,
-      author_avatar: ''
-    })
-
+  const { error } = await supabase.from('post_comments').insert({
+    post_id: props.postId,
+    user_id: props.currentUser.id,
+    content: newComment.value.trim(),
+    author_name: authorName,
+    author_avatar: '',
+    user_email: authorName
+  })
   commentLoading.value = false
-
-  if (error) {
-    commentError.value = error.message
-    return
-  }
-
+  if (error) { commentError.value = error.message; return }
   newComment.value = ''
   await fetchComments()
 }
 
 const deleteComment = async (commentId) => {
-  const { error } = await supabase
-    .from('post_comments')
-    .delete()
-    .eq('id', commentId)
-
-  if (!error) {
-    comments.value = comments.value.filter(c => c.id !== commentId)
-  }
+  const { error } = await supabase.from('post_comments').delete().eq('id', commentId)
+  if (!error) comments.value = comments.value.filter(c => c.id !== commentId)
 }
 
 let subscription = null
 
 onMounted(async () => {
   await fetchComments()
-
   subscription = supabase
     .channel(`post_comments:${props.postId}`)
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'post_comments',
-      filter: `post_id=eq.${props.postId}`
-    }, async () => {
-      await fetchComments()
-    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'post_comments', filter: `post_id=eq.${props.postId}` }, async () => await fetchComments())
     .subscribe()
 })
 
-onBeforeUnmount(() => {
-  if (subscription) {
-    supabase.removeChannel(subscription)
-  }
-})
+onBeforeUnmount(() => { if (subscription) supabase.removeChannel(subscription) })
 </script>
+
+<style scoped>
+.post-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 14rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.comments-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.comments-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+
+.comment-list-item {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border-light);
+  transition: background-color 0.15s ease;
+}
+
+.comment-list-item:hover {
+  background: var(--color-bg-muted);
+}
+
+.comment-list-avatar div {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.5rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.comment-list-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-list-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.15rem;
+}
+
+.comment-list-author {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.comment-list-time {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
+
+.comment-list-text {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.comment-list-delete {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  align-self: center;
+}
+
+.delete-icon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.comment-list-delete:hover {
+  color: var(--color-error);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.comment-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.comment-input {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.9rem;
+}
+
+.comment-input::placeholder { color: var(--color-text-muted); }
+
+.comment-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
+}
+
+.error-text {
+  font-size: 0.75rem;
+  color: var(--color-error);
+  font-weight: 700;
+  margin-top: 0.4rem;
+}
+
+.signin-prompt {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 0.75rem 0;
+}
+
+.link-accent {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-style: normal;
+}
+
+.empty-comments {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 0.85rem 0;
+}
+</style>

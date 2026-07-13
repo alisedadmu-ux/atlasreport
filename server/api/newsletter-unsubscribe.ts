@@ -1,10 +1,12 @@
-import { defineEventHandler, getQuery } from 'h3'
+import { defineEventHandler, getQuery, readBody } from 'h3'
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const token = query.token as string
-  const email = query.email as string
+  const method = event.method || 'GET'
+  const body = method === 'POST' ? await readBody(event) : {}
+  const token = (body.token || query.token) as string
+  const email = (body.email || query.email) as string
 
   if (!token && !email) {
     return { success: false, error: 'Missing required parameters' }
@@ -33,13 +35,14 @@ export default defineEventHandler(async (event) => {
       query_builder = query_builder.eq('email', email.toLowerCase().trim())
     }
 
-    const { error } = await query_builder
+    const { data, error } = await query_builder.select('id')
 
     if (error) {
-      if (error.code === 'PGRST116' || error.message?.includes('no rows')) {
-        return { success: false, error: 'Subscriber not found' }
-      }
       return { success: false, error: 'Failed to unsubscribe. Try again later.' }
+    }
+
+    if (!data || data.length === 0) {
+      return { success: false, error: 'Subscriber not found' }
     }
 
     return { success: true, message: 'You have been unsubscribed successfully.' }

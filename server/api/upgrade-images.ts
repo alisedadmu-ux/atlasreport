@@ -1,5 +1,30 @@
-import { defineEventHandler } from 'h3'
+import { defineEventHandler, readBody, getRequestHeader, getMethod, createError } from 'h3'
 import { createClient } from '@supabase/supabase-js'
+
+function assertOrigin(event: any) {
+  const origin = getRequestHeader(event, 'origin') || getRequestHeader(event, 'referer') || ''
+  const siteOrigin = process.env.NUXT_APP_ORIGIN || process.env.NUXT_PUBLIC_SITE_URL || ''
+  if (siteOrigin) {
+    let expected: string
+    try {
+      expected = new URL(siteOrigin).origin
+    } catch {
+      return
+    }
+    if (!origin) {
+      throw createError({ statusCode: 403, statusMessage: 'Missing origin' })
+    }
+    let actual: string
+    try {
+      actual = new URL(origin).origin
+    } catch {
+      throw createError({ statusCode: 403, statusMessage: 'Missing origin' })
+    }
+    if (actual !== expected) {
+      throw createError({ statusCode: 403, statusMessage: 'Forbidden origin' })
+    }
+  }
+}
 
 const FALLBACK_IMAGES: Record<string, string> = {
   general: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=90&w=1600&fm=webp',
@@ -11,6 +36,19 @@ const FALLBACK_IMAGES: Record<string, string> = {
 }
 
 export default defineEventHandler(async (event) => {
+  const method = getMethod(event)
+
+  if (method !== 'POST') {
+    throw createError({ statusCode: 405, statusMessage: 'Method not allowed' })
+  }
+
+  assertOrigin(event)
+
+  await requireAdmin(event)
+
+  const body = method === 'POST' ? await readBody(event) : {}
+  const _csrf = (body as any)?.csrf_token
+
   const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NUXT_SUPABASE_SERVICE_KEY
 

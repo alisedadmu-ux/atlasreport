@@ -1,76 +1,55 @@
 <template>
-  <div
-    class="rounded-xl border p-6"
-    :style="{
-      backgroundColor: 'var(--color-card-bg)',
-      borderColor: 'var(--color-border)'
-    }"
-  >
-    <div class="flex items-center gap-3 mb-3">
-      <span class="text-2xl">📬</span>
+  <div class="newsletter-box">
+    <div class="newsletter-header">
+      <div class="newsletter-icon-wrap">
+        <Mail class="newsletter-icon" />
+      </div>
       <div>
-        <h3 class="text-sm font-black" :style="{ color: 'var(--color-text)' }">Newsletter</h3>
-        <p class="text-xs" :style="{ color: 'var(--color-text-muted)' }">Get the latest briefs in your inbox.</p>
+        <h3 class="newsletter-title">Newsletter</h3>
+        <p class="newsletter-subtitle">Get the latest briefs in your inbox.</p>
       </div>
     </div>
-
-    <form @submit.prevent="handleSubscribe" class="flex gap-2">
+    <form @submit.prevent="handleSubscribe" class="newsletter-form">
       <input
         v-model="email"
         type="email"
         required
         placeholder="your@email.com"
-        class="flex-1 rounded-lg border px-3 py-2 text-xs outline-none transition"
-        :style="{
-          backgroundColor: 'var(--color-input-bg)',
-          borderColor: 'var(--color-input-border)',
-          color: 'var(--color-text)'
-        }"
+        aria-label="Email address"
+        class="form-input"
       />
-      <button
-        type="submit"
-        :disabled="subscribing"
-        class="rounded-lg px-4 py-2 text-xs font-bold text-white transition"
-        :style="{
-          backgroundColor: 'var(--color-accent)',
-          opacity: subscribing ? 0.6 : 1
-        }"
-      >
+      <button type="submit" :disabled="subscribing" class="btn btn-primary btn-sm">
         {{ subscribing ? '...' : 'Subscribe' }}
       </button>
     </form>
-
-    <p v-if="message" class="mt-2 text-xs font-semibold" :class="messageType === 'error' ? 'text-red-500' : 'text-emerald-600'">
+    <p v-if="message" class="newsletter-message" :class="messageType === 'error' ? 'form-error' : 'form-success'">
       {{ message }}
     </p>
-
-    <p v-if="showUnsubscribeLink" class="mt-3 text-[10px] text-center" :style="{ color: 'var(--color-text-muted)' }">
+    <p v-if="showUnsubscribeLink" class="newsletter-unsub">
       Already subscribed?
-      <NuxtLink to="/unsubscribe" class="font-bold underline hover:text-red-700 transition-colors">
-        Unsubscribe here
-      </NuxtLink>
+      <NuxtLink to="/unsubscribe" class="link-accent">Unsubscribe here</NuxtLink>
     </p>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import { Mail } from '@lucide/vue'
 
 const email = ref('')
 const subscribing = ref(false)
 const message = ref('')
 const messageType = ref('')
+
 const showUnsubscribeLink = computed(() => {
   return message.value.includes('already subscribed') || message.value.includes('Welcome back')
 })
 
 const handleSubscribe = async () => {
   if (!email.value.trim()) return
-
   subscribing.value = true
   message.value = ''
   messageType.value = ''
-
   try {
     const res = await fetch('/api/newsletter-subscribe', {
       method: 'POST',
@@ -78,10 +57,9 @@ const handleSubscribe = async () => {
       body: JSON.stringify({ email: email.value.trim() })
     })
     const data = await res.json()
-
     if (data.success) {
       message.value = data.message
-      messageType.value = data.message.includes('already') || data.message.includes('Welcome back') ? 'success' : 'success'
+      messageType.value = 'success'
       if (!data.message.includes('already') && !data.message.includes('Welcome back')) {
         email.value = ''
       }
@@ -93,7 +71,78 @@ const handleSubscribe = async () => {
     message.value = 'Something went wrong. Try again later.'
     messageType.value = 'error'
   }
-
   subscribing.value = false
 }
 </script>
+
+<style scoped>
+.newsletter-box {
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.newsletter-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.newsletter-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+}
+
+.newsletter-icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.newsletter-title {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.newsletter-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.15rem;
+}
+
+.newsletter-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.newsletter-message {
+  margin-top: 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.newsletter-unsub {
+  margin-top: 0.85rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.link-accent {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+</style>

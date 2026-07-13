@@ -1,260 +1,161 @@
 <template>
-  <div class="min-h-screen" style="background-color: var(--color-bg);">
-    <div class="max-w-6xl mx-auto px-6 py-8">
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-8">
+  <div class="admin-page">
+    <div class="site-container">
+      <div class="admin-header">
         <div>
-          <h1 class="text-3xl font-bold font-serif" :style="{ color: 'var(--color-text)' }">📬 Newsletter Management</h1>
-          <p class="text-sm mt-1" :style="{ color: 'var(--color-text-muted)' }">Manage subscribers, send campaigns, and track performance.</p>
-        </div>
-        <NuxtLink
-          to="/profile"
-          class="text-sm font-bold px-4 py-2 rounded-lg border transition-all"
-          :style="{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text)'
-          }"
-        >
-          ← Back to Profile
-        </NuxtLink>
-      </div>
-
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div class="rounded-xl border p-5" :style="{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
-          <p class="text-xs font-bold uppercase tracking-wider" :style="{ color: 'var(--color-text-muted)' }">Total Subscribers</p>
-          <p class="text-3xl font-bold mt-1" :style="{ color: 'var(--color-text)' }">{{ stats.total }}</p>
-        </div>
-        <div class="rounded-xl border p-5" :style="{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
-          <p class="text-xs font-bold uppercase tracking-wider" :style="{ color: 'var(--color-text-muted)' }">Active</p>
-          <p class="text-3xl font-bold mt-1 text-emerald-600">{{ stats.active }}</p>
-        </div>
-        <div class="rounded-xl border p-5" :style="{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
-          <p class="text-xs font-bold uppercase tracking-wider" :style="{ color: 'var(--color-text-muted)' }">Unsubscribed</p>
-          <p class="text-3xl font-bold mt-1 text-red-500">{{ stats.inactive }}</p>
-        </div>
-        <div class="rounded-xl border p-5" :style="{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
-          <p class="text-xs font-bold uppercase tracking-wider" :style="{ color: 'var(--color-text-muted)' }">Campaigns Sent</p>
-          <p class="text-3xl font-bold mt-1" :style="{ color: 'var(--color-text)' }">{{ campaigns.length }}</p>
+          <NuxtLink to="/profile" class="back-link">&larr; Back to Profile</NuxtLink>
+          <p class="eyebrow">Admin</p>
+          <h1 class="admin-title">Newsletter Management</h1>
+          <p class="admin-subtitle">Manage subscribers, send campaigns, and track performance.</p>
         </div>
       </div>
 
-      <!-- Tabs -->
-      <div class="flex gap-1 mb-6 border-b" :style="{ borderColor: 'var(--color-border)' }">
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          @click="activeTab = tab.id"
-          class="px-5 py-3 text-sm font-bold transition-all rounded-t-lg"
-          :style="{
-            color: activeTab === tab.id ? 'var(--color-accent)' : 'var(--color-text-muted)',
-            borderBottom: activeTab === tab.id ? '2px solid var(--color-accent)' : '2px solid transparent'
-          }"
-        >
-          {{ tab.label }}
-        </button>
+      <div v-if="loading" class="admin-loading">
+        <div class="skeleton skeleton-card" style="min-height: 80px;"></div>
+        <div class="skeleton skeleton-card" style="min-height: 80px;"></div>
+        <div class="skeleton skeleton-card" style="min-height: 80px;"></div>
       </div>
 
-      <!-- Tab: Compose -->
-      <div v-if="activeTab === 'compose'" class="rounded-xl border p-6" :style="{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
-        <h2 class="text-xl font-bold mb-4" :style="{ color: 'var(--color-text)' }">Compose Newsletter</h2>
+      <template v-else>
+        <div class="stats-grid">
+          <div class="stat-card stat-flat">
+            <p class="stat-label">Total Subscribers</p>
+            <p class="stat-value">{{ stats.total }}</p>
+            <span class="stat-indicator"></span>
+          </div>
+          <div class="stat-card stat-flat">
+            <p class="stat-label">Active</p>
+            <p class="stat-value stat-success">{{ stats.active }}</p>
+            <span class="stat-indicator stat-indicator-success"></span>
+          </div>
+          <div class="stat-card stat-flat">
+            <p class="stat-label">Unsubscribed</p>
+            <p class="stat-value stat-error">{{ stats.inactive }}</p>
+            <span class="stat-indicator stat-indicator-error"></span>
+          </div>
+          <div class="stat-card stat-flat">
+            <p class="stat-label">Campaigns Sent</p>
+            <p class="stat-value">{{ campaigns.length }}</p>
+            <span class="stat-indicator"></span>
+          </div>
+        </div>
 
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold mb-1" :style="{ color: 'var(--color-text-muted)' }">Subject</label>
+        <div class="tabs-row">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            :class="['tab-btn', { 'tab-active': activeTab === tab.id }]"
+            @click="activeTab = tab.id"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div v-if="activeTab === 'compose'" class="panel-card">
+          <h2 class="panel-title">Compose Newsletter</h2>
+          <form @submit.prevent class="compose-form">
+            <div class="form-group">
+              <label class="form-label" for="subject">Subject</label>
+              <input id="subject" v-model="compose.subject" type="text" class="form-input" placeholder="Newsletter subject line" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="content">Content (HTML supported)</label>
+              <textarea id="content" v-model="compose.content" rows="12" class="form-input form-textarea" placeholder="Write your newsletter content here... HTML is supported." />
+              <span class="char-count">{{ compose.content.length }} characters</span>
+            </div>
+            <div class="test-row">
+              <label class="form-label" for="testEmail">Send test to:</label>
+              <div class="test-actions">
+                <input id="testEmail" v-model="compose.testEmail" type="email" class="form-input" placeholder="your@email.com" />
+                <button @click="sendTest" :disabled="sending" class="btn btn-secondary btn-sm">Send Test</button>
+              </div>
+            </div>
+            <div class="send-row">
+              <button @click="sendToAll" :disabled="sending" class="btn btn-primary">
+                {{ sending ? 'Sending...' : `Send to ${stats.active} subscribers` }}
+              </button>
+              <p v-if="sendMessage" class="send-message" :class="sendMessageType === 'error' ? 'msg-error' : 'msg-success'">{{ sendMessage }}</p>
+            </div>
+          </form>
+        </div>
+
+        <div v-if="activeTab === 'subscribers'" class="panel-card">
+          <div class="table-header">
             <input
-              v-model="compose.subject"
+              v-model="searchQuery"
+              @input="searchSubscribers"
               type="text"
-              placeholder="Newsletter subject line"
-              class="w-full rounded-lg border px-4 py-3 text-sm outline-none transition"
-              :style="{
-                backgroundColor: 'var(--color-input-bg)',
-                borderColor: 'var(--color-input-border)',
-                color: 'var(--color-text)'
-              }"
+              placeholder="Search by email..."
+              class="form-input"
+              style="max-width: 280px;"
             />
+            <span class="table-count">{{ subscribers.length }} of {{ stats.total }}</span>
           </div>
-
-          <div>
-            <label class="block text-xs font-bold mb-1" :style="{ color: 'var(--color-text-muted)' }">Content (HTML supported)</label>
-            <textarea
-              v-model="compose.content"
-              rows="12"
-              placeholder="Write your newsletter content here... HTML is supported."
-              class="w-full rounded-lg border px-4 py-3 text-sm outline-none transition font-mono"
-              :style="{
-                backgroundColor: 'var(--color-input-bg)',
-                borderColor: 'var(--color-input-border)',
-                color: 'var(--color-text)'
-              }"
-            ></textarea>
+          <div class="table-wrap">
+            <p v-if="deleteError" class="delete-status delete-status-error">{{ deleteError }}</p>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Subscribed</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="sub in subscribers" :key="sub.id" :class="{ 'row-muted': !sub.is_active }">
+                  <td class="td-email">{{ sub.email }}</td>
+                  <td>
+                    <span :class="['badge', sub.is_active ? 'badge-success' : 'badge-error']">
+                      {{ sub.is_active ? 'Active' : 'Unsubscribed' }}
+                    </span>
+                  </td>
+                  <td class="td-muted">{{ new Date(sub.subscribed_at).toLocaleDateString() }}</td>
+                  <td>
+                    <button @click="deleteSubscriber(sub.id)" class="btn btn-ghost btn-sm" style="color: var(--color-error);">Delete</button>
+                  </td>
+                </tr>
+                <tr v-if="subscribers.length === 0">
+                  <td colspan="4" class="td-empty">No subscribers found.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-
-          <div class="flex items-center gap-3">
-            <label class="text-xs font-bold" :style="{ color: 'var(--color-text-muted)' }">Send test to:</label>
-            <input
-              v-model="compose.testEmail"
-              type="email"
-              placeholder="your@email.com"
-              class="flex-1 max-w-xs rounded-lg border px-3 py-2 text-sm outline-none transition"
-              :style="{
-                backgroundColor: 'var(--color-input-bg)',
-                borderColor: 'var(--color-input-border)',
-                color: 'var(--color-text)'
-              }"
-            />
-            <button
-              @click="sendTest"
-              :disabled="sending"
-              class="px-4 py-2 rounded-lg text-xs font-bold text-white transition"
-              style="background-color: #6b7280;"
-            >
-              {{ sending ? '...' : 'Send Test' }}
-            </button>
-          </div>
-
-          <div class="flex items-center gap-3 pt-2 border-t" :style="{ borderColor: 'var(--color-border)' }">
-            <button
-              @click="sendToAll"
-              :disabled="sending"
-              class="px-6 py-3 rounded-lg text-sm font-bold text-white transition"
-              style="background-color: var(--color-accent)"
-            >
-              {{ sending ? 'Sending...' : `Send to ${stats.active} subscribers` }}
-            </button>
-            <p v-if="sendMessage" class="text-sm font-semibold" :class="sendMessageType === 'error' ? 'text-red-500' : 'text-emerald-600'">
-              {{ sendMessage }}
-            </p>
+          <div v-if="totalPages > 1" class="pagination">
+            <button @click="changePage(currentPage - 1)" :disabled="currentPage <= 1" :class="['page-btn', { 'page-btn-disabled': currentPage <= 1 }]">&larr; Previous</button>
+            <span class="page-meta">Page {{ currentPage }} of {{ totalPages }}</span>
+            <button @click="changePage(currentPage + 1)" :disabled="currentPage >= totalPages" :class="['page-btn', { 'page-btn-disabled': currentPage >= totalPages }]">Next &rarr;</button>
           </div>
         </div>
-      </div>
 
-      <!-- Tab: Subscribers -->
-      <div v-if="activeTab === 'subscribers'" class="rounded-xl border" :style="{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
-        <div class="p-4 border-b flex items-center gap-4" :style="{ borderColor: 'var(--color-border)' }">
-          <input
-            v-model="searchQuery"
-            @input="searchSubscribers"
-            type="text"
-            placeholder="Search by email..."
-            class="flex-1 rounded-lg border px-4 py-2 text-sm outline-none transition"
-            :style="{
-              backgroundColor: 'var(--color-input-bg)',
-              borderColor: 'var(--color-input-border)',
-              color: 'var(--color-text)'
-            }"
-          />
-          <span class="text-xs font-semibold" :style="{ color: 'var(--color-text-muted)' }">
-            {{ subscribers.length }} of {{ stats.total }}
-          </span>
+        <div v-if="activeTab === 'campaigns'" class="panel-card">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Status</th>
+                  <th>Sent</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="campaign in campaigns" :key="campaign.id">
+                  <td class="td-email">{{ campaign.subject }}</td>
+                  <td>
+                    <span :class="['badge', campaignBadgeClass(campaign.status)]">{{ campaign.status }}</span>
+                  </td>
+                  <td class="td-muted">{{ campaign.sent_count }}</td>
+                  <td class="td-muted">{{ campaign.sent_at ? new Date(campaign.sent_at).toLocaleDateString() : 'Not sent' }}</td>
+                </tr>
+                <tr v-if="campaigns.length === 0">
+                  <td colspan="4" class="td-empty">No campaigns sent yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b" :style="{ borderColor: 'var(--color-border)' }">
-                <th class="text-left px-4 py-3 font-bold text-xs" :style="{ color: 'var(--color-text-muted)' }">Email</th>
-                <th class="text-left px-4 py-3 font-bold text-xs" :style="{ color: 'var(--color-text-muted)' }">Status</th>
-                <th class="text-left px-4 py-3 font-bold text-xs" :style="{ color: 'var(--color-text-muted)' }">Subscribed</th>
-                <th class="text-left px-4 py-3 font-bold text-xs" :style="{ color: 'var(--color-text-muted)' }">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="sub in subscribers" :key="sub.id" class="border-b" :style="{ borderColor: 'var(--color-border)' }">
-                <td class="px-4 py-3" :style="{ color: 'var(--color-text)' }">{{ sub.email }}</td>
-                <td class="px-4 py-3">
-                  <span
-                    class="text-xs font-bold px-2 py-1 rounded-full"
-                    :class="sub.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'"
-                  >
-                    {{ sub.is_active ? 'Active' : 'Unsubscribed' }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-xs" :style="{ color: 'var(--color-text-muted)' }">
-                  {{ new Date(sub.subscribed_at).toLocaleDateString() }}
-                </td>
-                <td class="px-4 py-3">
-                  <button
-                    @click="deleteSubscriber(sub.id)"
-                    class="text-xs font-bold text-red-500 hover:text-red-700 transition-colors"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-              <tr v-if="subscribers.length === 0">
-                <td colspan="4" class="px-4 py-8 text-center text-sm" :style="{ color: 'var(--color-text-muted)' }">
-                  No subscribers found.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div v-if="totalPages > 1" class="p-4 border-t flex items-center justify-between" :style="{ borderColor: 'var(--color-border)' }">
-          <button
-            @click="changePage(currentPage - 1)"
-            :disabled="currentPage <= 1"
-            class="text-xs font-bold px-3 py-1.5 rounded border transition-all disabled:opacity-30"
-            :style="{ borderColor: 'var(--color-border)', color: 'var(--color-text)' }"
-          >
-            ← Previous
-          </button>
-          <span class="text-xs" :style="{ color: 'var(--color-text-muted)' }">Page {{ currentPage }} of {{ totalPages }}</span>
-          <button
-            @click="changePage(currentPage + 1)"
-            :disabled="currentPage >= totalPages"
-            class="text-xs font-bold px-3 py-1.5 rounded border transition-all disabled:opacity-30"
-            :style="{ borderColor: 'var(--color-border)', color: 'var(--color-text)' }"
-          >
-            Next →
-          </button>
-        </div>
-      </div>
-
-      <!-- Tab: Campaigns -->
-      <div v-if="activeTab === 'campaigns'" class="rounded-xl border" :style="{ backgroundColor: 'var(--color-card-bg)', borderColor: 'var(--color-border)' }">
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b" :style="{ borderColor: 'var(--color-border)' }">
-                <th class="text-left px-4 py-3 font-bold text-xs" :style="{ color: 'var(--color-text-muted)' }">Subject</th>
-                <th class="text-left px-4 py-3 font-bold text-xs" :style="{ color: 'var(--color-text-muted)' }">Status</th>
-                <th class="text-left px-4 py-3 font-bold text-xs" :style="{ color: 'var(--color-text-muted)' }">Sent</th>
-                <th class="text-left px-4 py-3 font-bold text-xs" :style="{ color: 'var(--color-text-muted)' }">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="campaign in campaigns" :key="campaign.id" class="border-b" :style="{ borderColor: 'var(--color-border)' }">
-                <td class="px-4 py-3 font-medium" :style="{ color: 'var(--color-text)' }">{{ campaign.subject }}</td>
-                <td class="px-4 py-3">
-                  <span
-                    class="text-xs font-bold px-2 py-1 rounded-full"
-                    :class="{
-                      'bg-blue-100 text-blue-700': campaign.status === 'draft',
-                      'bg-emerald-100 text-emerald-700': campaign.status === 'sent',
-                      'bg-yellow-100 text-yellow-700': campaign.status === 'sending',
-                      'bg-red-100 text-red-700': campaign.status === 'failed'
-                    }"
-                  >
-                    {{ campaign.status }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-xs" :style="{ color: 'var(--color-text-muted)' }">{{ campaign.sent_count }}</td>
-                <td class="px-4 py-3 text-xs" :style="{ color: 'var(--color-text-muted)' }">
-                  {{ campaign.sent_at ? new Date(campaign.sent_at).toLocaleDateString() : 'Not sent' }}
-                </td>
-              </tr>
-              <tr v-if="campaigns.length === 0">
-                <td colspan="4" class="px-4 py-8 text-center text-sm" :style="{ color: 'var(--color-text-muted)' }">
-                  No campaigns sent yet.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -264,47 +165,36 @@ import { ref, onMounted } from 'vue'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-
-// Auth check
-onMounted(() => {
-  if (!user.value || user.value?.email !== 'alisedadmu@gmail.com') {
-    navigateTo('/auth')
-  }
-})
+const loading = ref(true)
 
 const tabs = [
-  { id: 'compose', label: '✏️ Compose' },
-  { id: 'subscribers', label: '👥 Subscribers' },
-  { id: 'campaigns', label: '📊 Campaigns' }
+  { id: 'compose', label: 'Compose' },
+  { id: 'subscribers', label: 'Subscribers' },
+  { id: 'campaigns', label: 'Campaigns' }
 ]
 const activeTab = ref('compose')
-
-// Stats
 const stats = ref({ total: 0, active: 0, inactive: 0 })
-
-// Compose
 const compose = ref({ subject: '', content: '', testEmail: '' })
 const sending = ref(false)
 const sendMessage = ref('')
 const sendMessageType = ref('')
-
-// Subscribers
 const subscribers = ref([])
 const searchQuery = ref('')
 const currentPage = ref(1)
 const totalPages = ref(1)
-
-// Campaigns
 const campaigns = ref([])
+const deleteError = ref('')
 
 let searchTimeout = null
 
 onMounted(async () => {
-  await Promise.all([
-    fetchStats(),
-    fetchSubscribers(),
-    fetchCampaigns()
-  ])
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  if (!currentUser || currentUser.email !== 'alisedadmu@gmail.com') {
+    await navigateTo('/auth')
+    return
+  }
+  await Promise.all([fetchStats(), fetchSubscribers(), fetchCampaigns()])
+  loading.value = false
 })
 
 const fetchStats = async () => {
@@ -317,19 +207,11 @@ const fetchStats = async () => {
 
 const fetchSubscribers = async () => {
   try {
-    const params = new URLSearchParams({
-      action: 'subscribers',
-      page: currentPage.value.toString(),
-      limit: '50'
-    })
+    const params = new URLSearchParams({ action: 'subscribers', page: currentPage.value.toString(), limit: '50' })
     if (searchQuery.value) params.set('search', searchQuery.value)
-
     const res = await fetch(`/api/newsletter-admin?${params.toString()}`)
     const data = await res.json()
-    if (data.success) {
-      subscribers.value = data.subscribers
-      totalPages.value = data.totalPages
-    }
+    if (data.success) { subscribers.value = data.subscribers; totalPages.value = data.totalPages }
   } catch (e) {}
 }
 
@@ -343,27 +225,32 @@ const fetchCampaigns = async () => {
 
 const searchSubscribers = () => {
   clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    currentPage.value = 1
-    fetchSubscribers()
-  }, 300)
+  searchTimeout = setTimeout(() => { currentPage.value = 1; fetchSubscribers() }, 300)
 }
 
-const changePage = (page) => {
-  if (page < 1 || page > totalPages.value) return
-  currentPage.value = page
-  fetchSubscribers()
-}
+const changePage = (page) => { if (page < 1 || page > totalPages.value) return; currentPage.value = page; fetchSubscribers() }
 
 const deleteSubscriber = async (id) => {
   if (!confirm('Delete this subscriber?')) return
+  deleteError.value = ''
   try {
-    const res = await fetch(`/api/newsletter-admin?action=delete-subscriber&id=${id}`)
+    const res = await fetch('/api/newsletter-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete-subscriber', id })
+    })
     const data = await res.json()
-    if (data.success) {
+    if (res.status === 403) {
+      deleteError.value = 'Unauthorized: admin access required'
+    } else if (data.success) {
       await Promise.all([fetchSubscribers(), fetchStats()])
+      deleteError.value = ''
+    } else {
+      deleteError.value = data.error || 'Failed to delete subscriber'
     }
-  } catch (e) {}
+  } catch (e) {
+    deleteError.value = 'Network error. Please try again.'
+  }
 }
 
 const sendTest = async () => {
@@ -372,35 +259,17 @@ const sendTest = async () => {
     sendMessageType.value = 'error'
     return
   }
-
-  sending.value = true
-  sendMessage.value = ''
-  sendMessageType.value = ''
-
+  sending.value = true; sendMessage.value = ''; sendMessageType.value = ''
   try {
     const res = await fetch('/api/newsletter-send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        subject: compose.value.subject,
-        content: compose.value.content,
-        testEmail: compose.value.testEmail
-      })
+      body: JSON.stringify({ subject: compose.value.subject, content: compose.value.content, testEmail: compose.value.testEmail })
     })
     const data = await res.json()
-
-    if (data.success) {
-      sendMessage.value = data.message
-      sendMessageType.value = 'success'
-    } else {
-      sendMessage.value = data.error
-      sendMessageType.value = 'error'
-    }
-  } catch (e) {
-    sendMessage.value = 'Network error'
-    sendMessageType.value = 'error'
-  }
-
+    if (data.success) { sendMessage.value = data.message; sendMessageType.value = 'success' }
+    else { sendMessage.value = data.error; sendMessageType.value = 'error' }
+  } catch (e) { sendMessage.value = 'Network error'; sendMessageType.value = 'error' }
   sending.value = false
 }
 
@@ -410,37 +279,312 @@ const sendToAll = async () => {
     sendMessageType.value = 'error'
     return
   }
-
   if (!confirm(`Send newsletter to ${stats.value.active} active subscribers?`)) return
-
-  sending.value = true
-  sendMessage.value = ''
-  sendMessageType.value = ''
-
+  sending.value = true; sendMessage.value = ''; sendMessageType.value = ''
   try {
     const res = await fetch('/api/newsletter-send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        subject: compose.value.subject,
-        content: compose.value.content
-      })
+      body: JSON.stringify({ subject: compose.value.subject, content: compose.value.content })
     })
     const data = await res.json()
-
-    if (data.success) {
-      sendMessage.value = data.message
-      sendMessageType.value = 'success'
-      await Promise.all([fetchCampaigns(), fetchStats()])
-    } else {
-      sendMessage.value = data.error
-      sendMessageType.value = 'error'
-    }
-  } catch (e) {
-    sendMessage.value = 'Network error'
-    sendMessageType.value = 'error'
-  }
-
+    if (data.success) { sendMessage.value = data.message; sendMessageType.value = 'success'; await Promise.all([fetchCampaigns(), fetchStats()]) }
+    else { sendMessage.value = data.error; sendMessageType.value = 'error' }
+  } catch (e) { sendMessage.value = 'Network error'; sendMessageType.value = 'error' }
   sending.value = false
 }
+
+const campaignBadgeClass = (status) => {
+  const map = { draft: 'badge-muted', sent: 'badge-success', sending: 'badge-warning', failed: 'badge-error' }
+  return map[status] || 'badge-muted'
+}
 </script>
+
+<style scoped>
+.admin-page { padding: 2rem 0; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0.25rem 0;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.admin-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  margin: 0.3rem 0 0.5rem;
+}
+
+.admin-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+}
+
+.admin-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.stat-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  border-radius: var(--radius-base);
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-flat {
+  box-shadow: none;
+  transition: none;
+}
+
+.stat-flat:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.stat-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-border);
+}
+
+.stat-indicator-success {
+  background: var(--color-success);
+}
+
+.stat-indicator-error {
+  background: var(--color-error);
+}
+
+.stat-label {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.stat-success { color: var(--color-success); }
+.stat-error { color: var(--color-error); }
+
+.tabs-row {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  width: fit-content;
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.tab-btn:hover { color: var(--color-text); }
+
+.tab-active {
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.panel-title {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 1.35rem;
+}
+
+.compose-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.char-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-top: 0.35rem;
+  text-align: right;
+}
+
+.test-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.test-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.send-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.send-message { font-size: 0.875rem; font-weight: 700; }
+.msg-error { color: var(--color-error); }
+.msg-success { color: var(--color-success); }
+
+.table-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.table-count { font-size: 0.8125rem; color: var(--color-text-muted); font-weight: 700; }
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+}
+
+.data-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text-secondary);
+}
+
+.data-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+  background: var(--color-bg-alt);
+}
+
+.data-table tbody tr.row-muted {
+  opacity: 0.65;
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+
+.td-email { color: var(--color-text); font-weight: 600; }
+.td-muted { color: var(--color-text-muted); font-size: 0.8125rem; }
+.td-empty { text-align: center; color: var(--color-text-muted); padding: 2.5rem; }
+
+.delete-status {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.delete-status-error {
+  color: var(--color-error);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--color-border);
+  margin-top: 1.25rem;
+}
+
+.page-meta { font-size: 0.8125rem; color: var(--color-text-muted); }
+
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .admin-header { flex-direction: column; }
+}
+</style>
