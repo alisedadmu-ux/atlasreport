@@ -138,7 +138,7 @@ const handleManualUnsubscribe = async () => {
 }
 
 .unsubscribe-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   font-size: clamp(1.5rem, 3vw, 2rem);
   margin: 0.25rem 0 0;
 }
@@ -166,7 +166,7 @@ const handleManualUnsubscribe = async () => {
 }
 
 .state-heading {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 1.5rem;
   color: var(--color-text);
   margin: 0;

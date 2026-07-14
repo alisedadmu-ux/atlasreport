@@ -100,6 +100,7 @@ export default defineEventHandler(async (event) => {
     })
 
     const results = { total: 0, new: 0, skipped: 0, errors: 0, feedErrors: [] as string[] }
+    const seenTitles = new Set<string>()
 
     for (const feed of RSS_FEEDS) {
       let parsed
@@ -117,17 +118,28 @@ export default defineEventHandler(async (event) => {
       for (const item of items) {
         if (!item.title) continue
 
+        const title = item.title.trim()
+
+        // Skip duplicates already seen in this run (same story across feeds)
+        const titleKey = title.toLowerCase()
+        if (seenTitles.has(titleKey)) {
+          results.skipped++
+          continue
+        }
+
         // Check for duplicate by title
         const { data: existing } = await supabase
           .from('articles')
           .select('id')
-          .eq('title', item.title.substring(0, 200))
+          .eq('title', title)
           .maybeSingle()
 
         if (existing) {
           results.skipped++
           continue
         }
+
+        seenTitles.add(titleKey)
 
         // Extract content
         const description = item.contentSnippet || item.description || ''
@@ -197,7 +209,7 @@ export default defineEventHandler(async (event) => {
           .from('articles')
           .insert({
             category: feed.category,
-            title: item.title,
+            title,
             description: description.substring(0, 300),
             content: contentArray,
             image: imageUrl,

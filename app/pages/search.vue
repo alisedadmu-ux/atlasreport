@@ -86,7 +86,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { truncateText } from '~/utils/format'
+import { truncateText, CATEGORIES, dedupeArticles } from '~/utils/format'
 import { Search, SearchX } from '@lucide/vue'
 
 const supabase = useSupabaseClient()
@@ -99,14 +99,7 @@ const searched = ref(false)
 const selectedCategories = ref([])
 let requestToken = 0
 
-const categories = [
-  { id: 'general', name: 'World', emoji: '🌍' },
-  { id: 'technology', name: 'Tech', emoji: '💻' },
-  { id: 'sports', name: 'Sports', emoji: '⚽' },
-  { id: 'science', name: 'Science', emoji: '🔬' },
-  { id: 'business', name: 'Business', emoji: '📈' },
-  { id: 'health', name: 'Health', emoji: '🏥' }
-]
+const categories = CATEGORIES
 
 let debounceTimer = null
 
@@ -148,7 +141,7 @@ const performSearch = async () => {
     if (selectedCategories.value.length) dbQuery = dbQuery.in('category', selectedCategories.value)
     const { data, error } = await dbQuery
     if (token === requestToken) {
-      if (!error && data) results.value = data
+      if (!error && data) results.value = dedupeArticles(data)
       else results.value = []
       loading.value = false
     }
@@ -186,7 +179,7 @@ const handleImageError = (event) => {
 }
 
 .search-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   font-size: clamp(1.75rem, 3.5vw, 2.5rem);
   margin: 0.4rem 0 0.75rem;
 }

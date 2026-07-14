@@ -49,7 +49,7 @@ export default defineNuxtConfig({
         { name: 'keywords', content: 'news, global intelligence, geopolitics, science, technology, business, health, sports' },
         { name: 'author', content: 'Atlas Report' },
         { name: 'robots', content: 'index, follow' },
-        { name: 'theme-color', content: '#0f172a' },
+        { name: 'theme-color', content: '#1E3A5F' },
         { name: 'format-detection', content: 'telephone=no' },
         { 'http-equiv': 'x-ua-compatible', content: 'IE=edge' },
         { property: 'og:title', content: 'Atlas Report — Global Intelligence Feed' },
@@ -65,7 +65,7 @@ export default defineNuxtConfig({
         { rel: 'canonical', href: 'https://atlasreport.com' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800;900&display=swap' }
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap' }
       ]
     },
     pageTransition: { name: 'page', mode: 'out-in' }
@@ -77,8 +77,8 @@ export default defineNuxtConfig({
       name: 'Atlas Report — Global Intelligence Feed',
       short_name: 'Atlas Report',
       description: 'Premium editorial coverage delivering verified reporting across geopolitics, science, and markets.',
-      theme_color: '#0f172a',
-      background_color: '#fcfbf7',
+      theme_color: '#1E3A5F',
+      background_color: '#F4F1EB',
       display: 'standalone',
       orientation: 'portrait-primary',
       start_url: '/',

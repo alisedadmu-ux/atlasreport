@@ -94,7 +94,7 @@ const handleSubmit = async () => {
 }
 
 .contact-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   font-size: clamp(1.5rem, 3vw, 2.25rem);
   margin: 0.3rem 0 0;
 }

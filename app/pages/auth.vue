@@ -243,7 +243,7 @@ const handleSignOut = async () => {
 .auth-brand-heading {
   font-size: 1.5rem;
   font-weight: 800;
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   color: var(--color-text);
 }
 

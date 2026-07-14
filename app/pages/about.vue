@@ -98,7 +98,7 @@
 }
 
 .about-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   font-size: clamp(1.75rem, 3.5vw, 2.25rem);
   line-height: 1.15;
   margin: 0.25rem 0 0;

@@ -1,7 +1,12 @@
 <template>
   <main class="article-page">
+    <!-- Reading progress -->
+    <div class="article-progress" ref="progressBar">
+      <div class="article-progress-bar" :style="{ width: progressPercent + '%' }"></div>
+    </div>
+
     <!-- Loading State -->
-    <div v-if="loading" class="article-loading">
+    <div v-if="loading" class="article-loading site-container">
       <div class="skeleton skeleton-hero"></div>
       <div class="skeleton skeleton-text" style="max-width: 720px;"></div>
       <div class="skeleton skeleton-text" style="max-width: 560px;"></div>
@@ -18,144 +23,153 @@
     </div>
 
     <!-- Article Content -->
-    <div v-else class="article-layout">
-      <article class="article-main">
-        <div class="article-progress" ref="progressBar">
-          <div class="article-progress-bar" :style="{ width: progressPercent + '%' }"></div>
-        </div>
+    <div v-else class="site-container">
+      <div class="article-layout">
+        <article class="article-main">
+          <NuxtLink to="/" class="back-link">
+            <ArrowLeft class="back-icon" />
+            Back to feed
+          </NuxtLink>
 
-        <NuxtLink to="/" class="back-link">
-          <ArrowLeft class="back-icon" />
-          Back to feed
-        </NuxtLink>
+          <header class="article-hero">
+            <span class="kicker article-kicker">{{ article.category }}</span>
+            <h1 class="article-hero-title">{{ article.title }}</h1>
+            <p v-if="article.description" class="standfirst">{{ article.description }}</p>
 
-        <header class="article-hero">
-          <div class="article-hero-meta">
-            <span class="badge badge-accent">{{ article.category }}</span>
-            <span class="article-hero-date">{{ formatDate(article.published) }}</span>
-            <span class="article-read-time">{{ readingTime }} min read</span>
-          </div>
-          <h1 class="article-hero-title">{{ article.title }}</h1>
-
-          <div class="article-hero-author">
-            <div class="author-avatar">
-              <span>{{ getInitials(article.author || 'AR') }}</span>
+            <div class="article-byline">
+              <div class="author-avatar">
+                <span>{{ getInitials(article.author || 'AR') }}</span>
+              </div>
+              <div class="byline-meta">
+                <span class="author-name">{{ article.author }}</span>
+                <span class="byline-sub">
+                  <time>{{ formatDate(article.published) }}</time>
+                  <span class="byline-dot">·</span>
+                  <span>{{ readingTime }} min read</span>
+                </span>
+              </div>
             </div>
-            <div class="author-meta">
-              <span class="author-name">{{ article.author }}</span>
-              <span class="author-role">Contributor, Atlas Report</span>
-            </div>
-          </div>
-        </header>
+          </header>
 
-        <div class="article-hero-media" v-if="article.image" :style="imageFailed ? heroImageFallbackStyle() : undefined">
-          <img v-if="!imageFailed" :src="article.image" :alt="article.title" loading="eager" @error="imageFailed = true" />
-          <div v-else class="img-placeholder article-img-placeholder" aria-hidden="true">{{ heroImageFallbackEmoji() }}</div>
-        </div>
+          <figure class="article-hero-media" v-if="article.image" :style="imageFailed ? heroImageFallbackStyle() : undefined">
+            <img v-if="!imageFailed" :src="article.image" :alt="article.title" loading="eager" @error="imageFailed = true" />
+            <div v-else class="img-placeholder article-img-placeholder" aria-hidden="true">{{ heroImageFallbackEmoji() }}</div>
+          </figure>
 
-        <div class="article-body-container">
-          <div class="article-summary-block" v-if="article.description">
-            <p>{{ article.description }}</p>
-          </div>
-
-          <div class="article-content prose-content">
-            <div class="article-content-inner">
+          <div class="article-body-container">
+            <div class="article-content prose-content">
               <div
                 v-for="(paragraph, index) in contentParagraphs"
                 :key="index"
                 class="article-paragraph"
+                :class="{ 'article-paragraph-lead': index === 0 }"
               >
                 <p>{{ paragraph }}</p>
               </div>
             </div>
+
+            <div class="article-actions-bar">
+              <div class="article-actions">
+                <button class="action-btn" :class="{ 'action-active': copied }" @click="shareArticle" aria-label="Share article">
+                  <Share2 class="action-icon" />
+                  <span class="action-label">{{ copied ? 'Copied!' : 'Share' }}</span>
+                </button>
+                <button class="action-btn" :class="{ 'action-active': bookmarked }" @click="toggleBookmark" :aria-pressed="bookmarked" aria-label="Bookmark article">
+                  <Bookmark class="action-icon" :fill="bookmarked ? 'currentColor' : 'none'" />
+                  <span class="action-label">{{ bookmarked ? 'Saved' : 'Save' }}</span>
+                </button>
+              </div>
+              <div class="article-actions-extra">
+                <span class="article-action-hint">Enjoyed this? Share it with someone who needs to know.</span>
+              </div>
+            </div>
           </div>
 
-          <div class="article-actions-bar">
-            <div class="article-actions">
-              <button class="action-btn" :class="{ 'action-active': copied }" @click="shareArticle" aria-label="Share article">
-                <Share2 class="action-icon" />
-                <span class="action-label">{{ copied ? 'Copied!' : 'Share' }}</span>
-              </button>
-              <button class="action-btn" :class="{ 'action-active': bookmarked }" @click="toggleBookmark" :aria-pressed="bookmarked" aria-label="Bookmark article">
-                <Bookmark class="action-icon" :fill="bookmarked ? 'currentColor' : 'none'" />
-                <span class="action-label">{{ bookmarked ? 'Saved' : 'Save' }}</span>
-              </button>
-            </div>
-            <div class="article-actions-extra">
-              <span class="article-action-hint">Enjoyed this? Share it with someone who needs to know.</span>
+          <!-- Related stories -->
+          <div v-if="relatedArticles.length" class="related-section">
+            <h2 class="related-heading">
+              <span>Related stories</span>
+              <span class="related-heading-line" aria-hidden="true"></span>
+            </h2>
+            <div class="related-grid">
+              <NuxtLink
+                v-for="ra in relatedArticles"
+                :key="ra.id"
+                :to="`/news/${ra.id}`"
+                class="related-card card-interactive"
+              >
+                <div class="related-media">
+                  <img :src="ra.image" :alt="ra.title" loading="lazy" @error="onRelatedImageError" />
+                </div>
+                <div class="related-body">
+                  <span class="kicker">{{ ra.category }}</span>
+                  <h3 class="related-title">{{ ra.title }}</h3>
+                  <time class="related-date">{{ formatDate(ra.published) }}</time>
+                </div>
+              </NuxtLink>
             </div>
           </div>
-        </div>
 
-        <div class="article-comments-section">
-          <CommentsSection :article-id="article.id" />
-        </div>
-
-        <div v-if="relatedArticles.length" class="related-section">
-          <h3 class="related-heading">
-            <span>Related stories</span>
-            <span class="related-heading-line" aria-hidden="true"></span>
-          </h3>
-          <div class="related-grid">
-            <NuxtLink
-              v-for="ra in relatedArticles"
-              :key="ra.id"
-              :to="`/news/${ra.id}`"
-              class="related-card"
-            >
-              <div class="related-media">
-                <img :src="ra.image" :alt="ra.title" loading="lazy" @error="onRelatedImageError" />
-              </div>
-              <div class="related-body">
-                <span class="badge badge-accent">{{ ra.category }}</span>
-                <h4 class="related-title">{{ ra.title }}</h4>
-                <time class="related-date">{{ formatDate(ra.published) }}</time>
-              </div>
+          <!-- Prev / Next -->
+          <nav v-if="prevArticle || nextArticle" class="article-prevnext" aria-label="More stories">
+            <NuxtLink v-if="prevArticle" :to="`/news/${prevArticle.id}`" class="prevnext-card prevnext-prev card-interactive">
+              <span class="prevnext-label">
+                <ArrowLeft class="prevnext-arrow" />
+                Previous
+              </span>
+              <span class="prevnext-title">{{ prevArticle.title }}</span>
             </NuxtLink>
-          </div>
-        </div>
-      </article>
+            <span v-else class="prevnext-spacer"></span>
+            <NuxtLink v-if="nextArticle" :to="`/news/${nextArticle.id}`" class="prevnext-card prevnext-next card-interactive">
+              <span class="prevnext-label">
+                Next
+                <ArrowRight class="prevnext-arrow" />
+              </span>
+              <span class="prevnext-title">{{ nextArticle.title }}</span>
+            </NuxtLink>
+            <span v-else class="prevnext-spacer"></span>
+          </nav>
 
-      <aside class="article-sidebar">
-        <div class="sidebar-section">
-          <h4 class="sidebar-title">On this page</h4>
-          <div class="toc-card">
-            <p class="toc-item toc-item-active">{{ article.title }}</p>
-            <p v-for="(paragraph, index) in Math.min(contentParagraphs.length, 6)" :key="index" class="toc-item toc-item-sub">
-              Section {{ index + 1 }}
-            </p>
+          <div class="article-comments-section">
+            <CommentsSection :article-id="article.id" />
           </div>
-        </div>
+        </article>
 
-        <div class="sidebar-section">
-          <h4 class="sidebar-title">Story details</h4>
-          <div class="detail-card">
-            <div class="detail-row">
-              <span>Category</span>
-              <strong>{{ article.category }}</strong>
-            </div>
-            <div class="detail-row">
-              <span>Published</span>
-              <time>{{ formatDate(article.published) }}</time>
-            </div>
-            <div class="detail-row">
-              <span>Author</span>
-              <strong>{{ article.author }}</strong>
-            </div>
-            <div class="detail-row" v-if="article.source">
-              <span>Source</span>
-              <strong>{{ article.source }}</strong>
-            </div>
+        <aside class="article-sidebar">
+          <div class="sidebar-rail">
+            <button class="rail-btn" :class="{ 'action-active': copied }" @click="shareArticle" aria-label="Share article">
+              <Share2 class="rail-icon" />
+              <span class="rail-label">{{ copied ? 'Copied!' : 'Share' }}</span>
+            </button>
+            <button class="rail-btn" :class="{ 'action-active': bookmarked }" @click="toggleBookmark" :aria-pressed="bookmarked" aria-label="Bookmark article">
+              <Bookmark class="rail-icon" :fill="bookmarked ? 'currentColor' : 'none'" />
+              <span class="rail-label">{{ bookmarked ? 'Saved' : 'Save' }}</span>
+            </button>
           </div>
-        </div>
 
-        <div class="sidebar-section">
-          <h4 class="sidebar-title">Why this matters</h4>
-          <div class="detail-card detail-card-muted">
-            <p>Atlas Report is designed to keep important reporting clear, accessible, and easy to read without compromising depth.</p>
+          <div class="sidebar-section">
+            <h2 class="sidebar-title">Story details</h2>
+            <div class="detail-card">
+              <div class="detail-row">
+                <span>Category</span>
+                <strong>{{ article.category }}</strong>
+              </div>
+              <div class="detail-row">
+                <span>Published</span>
+                <time>{{ formatDate(article.published) }}</time>
+              </div>
+              <div class="detail-row">
+                <span>Author</span>
+                <strong>{{ article.author }}</strong>
+              </div>
+              <div class="detail-row" v-if="article.source">
+                <span>Source</span>
+                <strong>{{ article.source }}</strong>
+              </div>
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      </div>
     </div>
   </main>
 </template>
@@ -165,7 +179,7 @@ import { computed, onMounted, ref, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { fallbackArticles } from '~/data/fallback-articles'
 import { getInitials, CATEGORY_GRADIENTS } from '~/utils/format'
-import { CircleAlert, ArrowLeft, Share2, Bookmark } from '@lucide/vue'
+import { CircleAlert, ArrowLeft, ArrowRight, Share2, Bookmark } from '@lucide/vue'
 
 const route = useRoute()
 const supabase = useSupabaseClient()
@@ -209,11 +223,33 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
+const sameCategory = computed(() => {
+  if (!article.value) return []
+  return fallbackArticles.filter(a => a.category === article.value.category && a.id !== article.value.id)
+})
+
 const relatedArticles = computed(() => {
   if (!article.value) return []
   return fallbackArticles
     .filter(a => a.id !== article.value.id && a.category === article.value.category)
     .slice(0, 3)
+})
+
+const currentIndex = computed(() => {
+  if (!article.value) return -1
+  return sameCategory.value.findIndex(a => a.id === article.value.id)
+})
+
+const prevArticle = computed(() => {
+  if (currentIndex.value > 0) return sameCategory.value[currentIndex.value - 1]
+  return null
+})
+
+const nextArticle = computed(() => {
+  if (currentIndex.value >= 0 && currentIndex.value < sameCategory.value.length - 1) {
+    return sameCategory.value[currentIndex.value + 1]
+  }
+  return null
 })
 
 const shareArticle = async () => {
@@ -289,7 +325,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .article-page {
-  padding: 2rem 0;
+  padding: 1.5rem 0 3rem;
 }
 
 /* ===== Reading Progress ===== */
@@ -305,7 +341,7 @@ onBeforeUnmount(() => {
 
 .article-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-hover));
+  background: var(--color-accent);
   transition: width 0.1s linear;
   border-radius: 0 2px 2px 0;
 }
@@ -313,8 +349,8 @@ onBeforeUnmount(() => {
 /* ===== Article Layout ===== */
 .article-layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 2.5rem;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 3rem;
   align-items: start;
 }
 
@@ -322,8 +358,10 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  max-width: 780px;
+  max-width: 720px;
   min-width: 0;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .back-link {
@@ -332,7 +370,7 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
   font-size: 0.8125rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-accent);
   padding: 0.4rem 0;
@@ -359,44 +397,33 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--color-border);
 }
 
-.article-hero-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.article-hero-date {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  letter-spacing: 0.02em;
-}
-
-.article-read-time {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-alt);
+.article-kicker {
+  margin-bottom: 0.25rem;
 }
 
 .article-hero-title {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(2.125rem, 4.5vw, 3.25rem);
-  line-height: 1.06;
-  letter-spacing: -0.025em;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
   color: var(--color-text);
-  font-weight: 800;
+  font-weight: 700;
 }
 
-.article-hero-author {
+.standfirst {
+  font-family: var(--font-serif);
+  font-size: 1.1875rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  margin: 0;
+}
+
+.article-byline {
   display: flex;
   align-items: center;
   gap: 0.85rem;
@@ -411,7 +438,7 @@ onBeforeUnmount(() => {
   height: 2.5rem;
   border-radius: 9999px;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-accent-contrast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -421,25 +448,39 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent-light);
 }
 
+.byline-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
 .author-name {
   display: block;
   font-size: 0.875rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-text);
-  letter-spacing: 0.01em;
 }
 
-.author-role {
-  font-size: 0.75rem;
+.byline-sub {
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
-  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
+.byline-dot {
+  color: var(--color-border-strong);
+}
+
+/* ===== Hero media ===== */
 .article-hero-media {
-  border-radius: var(--radius-xl);
+  margin: 0;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--color-bg-alt);
-  aspect-ratio: 16 / 7;
+  aspect-ratio: 16 / 8;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-xs);
 }
@@ -448,11 +489,6 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.article-hero-media:hover img {
-  transform: scale(1.02);
 }
 
 .img-placeholder {
@@ -466,7 +502,7 @@ onBeforeUnmount(() => {
 }
 
 .article-img-placeholder {
-  aspect-ratio: 16 / 7;
+  aspect-ratio: 16 / 8;
 }
 
 /* ===== Body ===== */
@@ -474,22 +510,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  max-width: 720px;
-}
-
-.article-summary-block {
-  padding: 1.25rem 1.5rem;
-  border-left: 4px solid var(--color-accent);
-  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-  background: var(--color-accent-subtle);
-  font-size: 1.0625rem;
-  line-height: 1.75;
-  color: var(--color-text);
-  font-weight: 500;
-}
-
-.article-summary-block p {
-  margin: 0;
 }
 
 .article-content {
@@ -504,14 +524,24 @@ onBeforeUnmount(() => {
 }
 
 .article-paragraph {
-  font-size: 1.0625rem;
-  line-height: 1.85;
+  font-size: 1.125rem;
+  line-height: 1.8;
   color: var(--color-text);
   letter-spacing: 0.01em;
 }
 
 .article-paragraph p {
   margin: 0;
+}
+
+.article-paragraph-lead::first-letter {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  float: left;
+  font-size: 3.4rem;
+  line-height: 0.82;
+  padding: 0.25rem 0.6rem 0 0;
+  color: var(--color-accent);
 }
 
 /* ===== Actions Bar ===== */
@@ -621,15 +651,15 @@ onBeforeUnmount(() => {
   border: 1px solid var(--color-border);
   background: var(--color-card-bg);
   box-shadow: var(--shadow-xs);
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   text-decoration: none;
   color: inherit;
 }
 
 .related-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  border-color: var(--color-accent-light);
+  border-color: var(--color-border-strong);
 }
 
 .related-media {
@@ -645,11 +675,11 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s ease;
 }
 
 .related-card:hover .related-media img {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .related-body {
@@ -660,8 +690,9 @@ onBeforeUnmount(() => {
 
 .related-title {
   font-size: 0.9375rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.35;
+  font-family: var(--font-serif);
   color: var(--color-text);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -675,13 +706,130 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
+/* ===== Prev / Next ===== */
+.article-prevnext {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.prevnext-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  box-shadow: var(--shadow-xs);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.25s ease;
+}
+
+.prevnext-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+}
+
+.prevnext-next {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.prevnext-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.prevnext-arrow {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.prevnext-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.prevnext-spacer {
+  display: block;
+}
+
 /* ===== Sidebar ===== */
 .article-sidebar {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   position: sticky;
-  top: 88px;
+  top: 140px;
+}
+
+.sidebar-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  box-shadow: var(--shadow-xs);
+}
+
+.rail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  justify-content: center;
+}
+
+.rail-icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rail-btn:hover {
+  background: var(--color-bg-alt);
+  border-color: var(--color-text-muted);
+  color: var(--color-text);
+}
+
+.rail-btn.action-active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
 }
 
 .sidebar-section {
@@ -693,44 +841,11 @@ onBeforeUnmount(() => {
 .sidebar-title {
   font-size: 0.6875rem;
   font-weight: 800;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text);
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--color-border);
-}
-
-.toc-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.toc-item {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--color-text);
-  padding: 0.4rem 0.6rem;
-  border-radius: var(--radius-sm);
-  border-left: 2px solid transparent;
-  transition: all 0.2s ease;
-  cursor: default;
-}
-
-.toc-item:hover {
-  background: var(--color-bg-alt);
-}
-
-.toc-item-active {
-  border-left-color: var(--color-accent);
-  background: var(--color-accent-subtle);
-}
-
-.toc-item-sub {
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  padding-left: 1.25rem;
-  font-size: 0.8125rem;
 }
 
 .detail-card {
@@ -741,16 +856,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-}
-
-.detail-card-muted {
-  background: var(--color-bg-alt);
-}
-
-.detail-card-muted p {
-  font-size: 0.875rem;
-  line-height: 1.7;
-  color: var(--color-text-secondary);
 }
 
 .detail-row {
@@ -793,7 +898,7 @@ onBeforeUnmount(() => {
 
 .skeleton-hero {
   height: 420px;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
 }
 
 /* ===== Empty State ===== */
@@ -823,7 +928,7 @@ onBeforeUnmount(() => {
 
 .empty-title {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-text);
 }
 
@@ -839,14 +944,22 @@ onBeforeUnmount(() => {
 @media (max-width: 1024px) {
   .article-layout {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: 2rem;
   }
 
   .article-sidebar {
     position: static;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-rail {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .rail-btn {
+    flex: 1;
   }
 
   .related-grid {
@@ -856,23 +969,20 @@ onBeforeUnmount(() => {
 
 @media (max-width: 768px) {
   .article-page {
-    padding: 1.5rem 1rem;
+    padding: 1.25rem 0 2.5rem;
   }
 
   .article-hero-media {
     aspect-ratio: 16 / 9;
   }
 
-  .article-sidebar {
-    grid-template-columns: 1fr;
-  }
-
-  .article-body-container {
-    max-width: 100%;
-  }
-
   .article-hero-title {
     font-size: clamp(1.75rem, 5vw, 2.25rem);
+  }
+
+  .article-paragraph {
+    font-size: 1.0625rem;
+    line-height: 1.75;
   }
 
   .related-grid {
@@ -881,6 +991,15 @@ onBeforeUnmount(() => {
 
   .article-actions-bar {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .article-prevnext {
+    grid-template-columns: 1fr;
+  }
+
+  .prevnext-next {
+    text-align: left;
     align-items: flex-start;
   }
 }

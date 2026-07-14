@@ -147,10 +147,10 @@ onMounted(async () => {
 })
 
 const accents = [
-  { name: 'ink', label: 'Ink', hex: '#0f172a' },
-  { name: 'crimson', label: 'Crimson', hex: '#b91c1c' },
-  { name: 'green', label: 'Green', hex: '#047857' },
-  { name: 'gold', label: 'Gold', hex: '#b45309' }
+  { name: 'ink', label: 'Ink', hex: '#1E3A5F' },
+  { name: 'crimson', label: 'Crimson', hex: '#B23A2E' },
+  { name: 'green', label: 'Green', hex: '#2E7D5B' },
+  { name: 'gold', label: 'Gold', hex: '#94651E' }
 ]
 const densities = ['compact', 'balanced', 'spacious']
 
@@ -315,7 +315,7 @@ const changePassword = async () => {
 
 .profile-title {
   font-size: clamp(1.5rem, 3vw, 2rem);
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   font-weight: 800;
 }
 

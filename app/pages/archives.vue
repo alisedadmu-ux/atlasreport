@@ -114,7 +114,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { truncateText, CATEGORY_GRADIENTS } from '~/utils/format'
+import { truncateText, CATEGORY_GRADIENTS, CATEGORIES, dedupeArticles } from '~/utils/format'
 
 const supabase = useSupabaseClient()
 
@@ -127,22 +127,15 @@ const supabase = useSupabaseClient()
   const articlesPerPage = 12
   const imageFailed = ref({})
 
-const categories = [
-  { id: 'general', name: 'World', emoji: '🌍' },
-  { id: 'technology', name: 'Tech', emoji: '💻' },
-  { id: 'sports', name: 'Sports', emoji: '⚽' },
-  { id: 'science', name: 'Science', emoji: '🔬' },
-  { id: 'business', name: 'Business', emoji: '📈' },
-  { id: 'health', name: 'Health', emoji: '🏥' }
-]
+const categories = CATEGORIES
 
 const categoryAccentColors = {
-  general: '#667eea',
-  technology: '#f5576c',
-  sports: '#4facfe',
-  science: '#43e97b',
-  business: '#fa709a',
-  health: '#38f9d7'
+  general: '#1E3A5F',
+  technology: '#2A3A4F',
+  sports: '#2E7D5B',
+  science: '#1F6F6F',
+  business: '#94651E',
+  health: '#B23A2E'
 }
 
 const categoryGradients = CATEGORY_GRADIENTS
@@ -209,7 +202,7 @@ onMounted(async () => {
   loading.value = true
   const { data, error: err } = await supabase.from('articles').select('*').order('published', { ascending: false })
   if (err) error.value = 'Failed to load archives.'
-  else if (data) articles.value = data
+  else if (data) articles.value = dedupeArticles(data)
   loading.value = false
 })
 </script>
@@ -229,7 +222,7 @@ onMounted(async () => {
 }
 
 .archives-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   font-size: clamp(1.75rem, 3.5vw, 2.5rem);
   margin: 0.4rem 0 0.75rem;
 }

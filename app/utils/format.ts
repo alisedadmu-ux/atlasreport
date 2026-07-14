@@ -1,6 +1,6 @@
 // Shared formatting and presentation helpers used across the app.
 
-export const ACCENT_COLORS = ['#0f172a', '#b91c1c', '#047857', '#b45309', '#1d4ed8', '#7c3aed']
+export const ACCENT_COLORS = ['#1E3A5F', '#2E7D5B', '#94651E', '#B23A2E', '#26251F', '#1F6F6F']
 
 export function getInitials(name?: string | null): string {
   const value = name || ''
@@ -46,11 +46,35 @@ export function getAccentColor(seed?: string | null): string {
   return ACCENT_COLORS[Math.abs(hash) % ACCENT_COLORS.length]
 }
 
+export const CATEGORIES: { id: string; name: string; emoji: string }[] = [
+  { id: 'general', name: 'World', emoji: '🌍' },
+  { id: 'technology', name: 'Tech', emoji: '💻' },
+  { id: 'sports', name: 'Sports', emoji: '⚽' },
+  { id: 'science', name: 'Science', emoji: '🔬' },
+  { id: 'business', name: 'Business', emoji: '📈' },
+  { id: 'health', name: 'Health', emoji: '🏥' }
+]
+
+export function dedupeArticles<T extends { title?: string | null }>(list: T[]): T[] {
+  const seen = new Set<string>()
+  const out: T[] = []
+  for (const item of list) {
+    const title = (item.title || '').toString().trim().toLowerCase()
+    if (!title) {
+      out.push(item)
+      continue
+    }
+    if (seen.has(title)) continue
+    seen.add(title)
+    out.push(item)
+  }
+  return out
+}
 export const CATEGORY_GRADIENTS: Record<string, { bg: string; emoji: string }> = {
-  general: { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', emoji: '🌍' },
-  technology: { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', emoji: '💻' },
-  sports: { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', emoji: '⚽' },
-  science: { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', emoji: '🔬' },
-  business: { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', emoji: '📈' },
-  health: { bg: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', emoji: '🏥' }
+  general: { bg: 'linear-gradient(135deg, #2A3A4F 0%, #1E3A5F 100%)', emoji: '🌍' },
+  technology: { bg: 'linear-gradient(135deg, #2F3A47 0%, #1E3A5F 100%)', emoji: '💻' },
+  sports: { bg: 'linear-gradient(135deg, #3A3630 0%, #26251F 100%)', emoji: '⚽' },
+  science: { bg: 'linear-gradient(135deg, #2C3A3A 0%, #1E3A5F 100%)', emoji: '🔬' },
+  business: { bg: 'linear-gradient(135deg, #3A3326 0%, #94651E 100%)', emoji: '📈' },
+  health: { bg: 'linear-gradient(135deg, #323A33 0%, #2E7D5B 100%)', emoji: '🏥' }
 }

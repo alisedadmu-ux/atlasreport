@@ -1,137 +1,113 @@
 <template>
   <div class="home-page">
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-content">
-        <div class="hero-eyebrow">
-          <span class="live-indicator" aria-label="Live updates">
-            <span class="live-dot" aria-hidden="true"></span>
-            Live updates
-          </span>
-          <span class="hero-date">{{ currentFormattedDate }}</span>
-        </div>
-        <h1 class="hero-title">
-          <span class="hero-title-accent">Stay current</span> with the latest global reporting.
-        </h1>
-        <p class="hero-subtitle">Verified journalism, sharp analysis, and a beautifully paced reading experience designed for modern readers.</p>
-      </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span class="hero-stat-value">{{ filteredArticles.length }}</span>
-          <span class="hero-stat-label">stories</span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-value">{{ categories.length }}</span>
-          <span class="hero-stat-label">categories</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Category Bar -->
-    <div class="category-bar">
-      <div class="category-pills" role="tablist" aria-label="News categories">
-        <button
-          v-for="cat in categories"
-          :key="cat.id"
-          :class="['cat-pill', { 'cat-pill-active': currentCategory === cat.id }]"
-          @click="currentCategory = cat.id"
-          role="tab"
-          :aria-selected="currentCategory === cat.id"
-        >
-          <span class="cat-emoji" aria-hidden="true">{{ cat.emoji }}</span>
-          {{ cat.name }}
-        </button>
-      </div>
-      <div class="category-actions">
-        <button v-if="isAdmin" @click="fetchLatestNews" :disabled="fetchLoading" class="btn btn-secondary btn-sm fetch-btn">
-          <RefreshCw v-if="fetchLoading" class="spin-icon" />
-          <RefreshCw v-else class="fetch-icon" />
-          {{ fetchLoading ? 'Fetching' : 'Fetch News' }}
-        </button>
-        <span v-if="fetchStatus" :class="['fetch-status', fetchStatus.includes('error') ? 'status-error' : 'status-success']" role="status">
-          {{ fetchStatus }}
+    <div class="site-container">
+      <!-- Masthead strip -->
+      <div class="home-masthead">
+        <span class="live-indicator" aria-label="Live updates">
+          <span class="live-dot" aria-hidden="true"></span>
+          Live updates
         </span>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-states" aria-busy="true" aria-label="Loading articles">
-      <div class="skeleton-grid">
-        <div class="skeleton-main-col">
-          <div class="skeleton-card-hero">
-            <div class="skeleton skeleton-media-hero"></div>
-            <div class="skeleton-card-body">
-              <div class="skeleton skeleton-badge" style="width: 100px;"></div>
-              <div class="skeleton skeleton-title-lg" style="width: 90%;"></div>
-              <div class="skeleton skeleton-text" style="width: 70%;"></div>
-              <div class="skeleton skeleton-text-sm" style="width: 40%;"></div>
-            </div>
-          </div>
-          <div class="skeleton-secondary-grid">
-            <div v-for="i in 3" :key="'sec-sk-' + i" class="skeleton-card-sm">
-              <div class="skeleton skeleton-media-sm"></div>
-              <div class="skeleton skeleton-title" style="width: 80%;"></div>
-              <div class="skeleton skeleton-text" style="width: 100%;"></div>
-            </div>
-          </div>
-        </div>
-        <div class="skeleton-sidebar-col">
-          <div v-for="i in 3" :key="'side-sk-' + i" class="skeleton-card-trend">
-            <div class="skeleton skeleton-rank"></div>
-            <div class="skeleton skeleton-media-xs"></div>
-            <div class="skeleton skeleton-title" style="width: 60%;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Articles Grid -->
-    <div v-else-if="filteredArticles.length > 0">
-      <div class="section-header">
-        <div>
-          <p class="section-eyebrow">Featured coverage</p>
-          <h2 class="section-title">{{ filteredArticles.length }} stor{{ filteredArticles.length === 1 ? 'y' : 'ies' }} in {{ currentCategoryLabel }}</h2>
-        </div>
-        <button v-if="filteredArticles.length > ARTICLES_PER_PAGE" @click="showAll = !showAll" class="btn btn-ghost btn-sm view-toggle">
-          {{ showAll ? 'Show less' : 'View all' }}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" :class="['view-toggle-icon', { 'rotated': showAll }]">
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
-        </button>
+        <span class="home-date">{{ currentFormattedDate }}</span>
       </div>
 
-      <div class="editorial-grid">
-        <section class="editorial-main">
-          <!-- Hero Card (first article) -->
+      <!-- Section bar (top) -->
+      <nav class="home-section-bar" aria-label="News sections">
+        <div class="home-section-pills">
           <NuxtLink
-            v-if="visibleArticles[0]"
-            :to="`/news/${visibleArticles[0].id}`"
+            v-for="cat in categories"
+            :key="cat.id"
+            :to="`/?cat=${cat.id}`"
+            :class="['home-pill', { 'home-pill-active': currentCategory === cat.id }]"
+            :aria-current="currentCategory === cat.id ? 'true' : undefined"
+          >
+            <span class="home-pill-emoji" aria-hidden="true">{{ cat.emoji }}</span>
+            {{ cat.name }}
+          </NuxtLink>
+        </div>
+        <NuxtLink to="/" class="home-top-stories" :class="{ 'home-top-stories-active': currentCategory === 'general' }">
+          <span class="home-top-stories-dot" aria-hidden="true"></span>
+          Top Stories
+        </NuxtLink>
+      </nav>
+
+      <!-- Loading State -->
+      <div v-if="loading" class="loading-states" aria-busy="true" aria-label="Loading articles">
+        <div class="skeleton-grid">
+          <div class="skeleton-main-col">
+            <div class="skeleton-card-hero">
+              <div class="skeleton skeleton-media-hero"></div>
+              <div class="skeleton-card-body">
+                <div class="skeleton skeleton-badge" style="width: 100px;"></div>
+                <div class="skeleton skeleton-title-lg" style="width: 90%;"></div>
+                <div class="skeleton skeleton-text" style="width: 70%;"></div>
+                <div class="skeleton skeleton-text-sm" style="width: 40%;"></div>
+              </div>
+            </div>
+            <div class="skeleton-secondary-grid">
+              <div v-for="i in 3" :key="'sec-sk-' + i" class="skeleton-card-sm">
+                <div class="skeleton skeleton-media-sm"></div>
+                <div class="skeleton skeleton-title" style="width: 80%;"></div>
+                <div class="skeleton skeleton-text" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="skeleton-sidebar-col">
+            <div v-for="i in 3" :key="'side-sk-' + i" class="skeleton-card-trend">
+              <div class="skeleton skeleton-rank"></div>
+              <div class="skeleton skeleton-media-xs"></div>
+              <div class="skeleton skeleton-title" style="width: 60%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="!viewArticles.length" class="empty-state">
+        <div class="empty-icon">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            <path d="M12 6v7" />
+            <path d="M9 9l3-3 3 3" />
+          </svg>
+        </div>
+        <p class="empty-title">No stories in this section yet</p>
+        <p class="empty-desc">Check back soon for the latest coverage. We're curating the most important stories for you.</p>
+        <NuxtLink to="/" class="btn btn-secondary btn-sm">Back to Top Stories</NuxtLink>
+      </div>
+
+      <!-- Front page -->
+      <div v-else class="home-front">
+        <!-- Lead + Featured -->
+        <div class="home-lead-row">
+          <NuxtLink
+            v-if="leadArticle"
+            :to="`/news/${leadArticle.id}`"
             class="hero-card card-interactive"
-            :aria-label="'Read article: ' + visibleArticles[0].title"
+            :aria-label="'Read article: ' + leadArticle.title"
           >
             <div class="hero-card-media">
-              <img :src="visibleArticles[0].image" :alt="visibleArticles[0].title" loading="eager" @error="onImageError($event, visibleArticles[0])" />
+              <img :src="leadArticle.image" :alt="leadArticle.title" loading="eager" @error="onImageError($event, leadArticle)" />
               <div class="hero-card-overlay">
                 <span class="hero-card-badge">Top story</span>
               </div>
             </div>
             <div class="hero-card-body">
-              <div class="card-kicker">{{ visibleArticles[0].category }}</div>
-              <h3 class="hero-card-title">{{ visibleArticles[0].title }}</h3>
-              <p class="card-excerpt">{{ visibleArticles[0].description }}</p>
+              <div class="card-kicker">{{ leadArticle.category }}</div>
+              <h2 class="hero-card-title">{{ leadArticle.title }}</h2>
+              <p class="card-excerpt">{{ leadArticle.description }}</p>
               <div class="card-meta">
-                <span class="card-author">By {{ visibleArticles[0].author }}</span>
+                <span class="card-author">By {{ leadArticle.author }}</span>
                 <span class="meta-sep">·</span>
-                <time class="card-time">{{ formatDate(visibleArticles[0].published) }}</time>
+                <time class="card-time">{{ formatDate(leadArticle.published) }}</time>
               </div>
             </div>
           </NuxtLink>
 
-          <!-- Secondary Grid (articles 2-4) -->
-          <div class="secondary-grid">
+          <div v-if="featuredArticles.length" class="home-featured">
             <NuxtLink
-              v-for="(article, index) in visibleArticles.slice(1, 4)"
-              :key="'sec-' + index"
+              v-for="article in featuredArticles"
+              :key="article.id"
               :to="`/news/${article.id}`"
               class="secondary-card card-interactive"
               :aria-label="'Read article: ' + article.title"
@@ -141,7 +117,7 @@
               </div>
               <div class="secondary-card-body">
                 <div class="card-kicker">{{ article.category }}</div>
-                <h4 class="secondary-card-title">{{ article.title }}</h4>
+                <h3 class="secondary-card-title">{{ article.title }}</h3>
                 <p class="card-excerpt">{{ truncateText(article.description, 110) }}</p>
                 <div class="card-meta">
                   <span>{{ formatDate(article.published) }}</span>
@@ -149,127 +125,204 @@
               </div>
             </NuxtLink>
           </div>
+        </div>
 
-           <!-- More Stories (everything beyond the initial page) -->
-           <div v-if="showAll" class="more-stories">
+        <div class="home-body-grid">
+          <div class="home-main">
+            <!-- Latest river -->
+            <section class="home-zone">
+              <div class="zone-header">
+                <div>
+                  <p class="kicker">Latest</p>
+                  <h2 class="section-title">Latest news</h2>
+                </div>
+              </div>
+              <div class="latest-river">
+                <NuxtLink
+                  v-for="article in latestArticlesPaged"
+                  :key="article.id"
+                  :to="`/news/${article.id}`"
+                  class="list-card card-interactive"
+                  :aria-label="'Read article: ' + article.title"
+                >
+                  <div class="list-card-media">
+                    <img :src="article.image" :alt="article.title" loading="lazy" @error="onImageError($event, article)" />
+                  </div>
+                  <div class="list-card-body">
+                    <div class="card-kicker">{{ article.category }}</div>
+                    <h3 class="list-card-title">{{ article.title }}</h3>
+                    <p class="card-excerpt">{{ truncateText(article.description, 160) }}</p>
+                    <div class="card-meta">
+                      <span class="card-author">By {{ article.author }}</span>
+                      <span class="meta-sep">·</span>
+                      <time>{{ formatDate(article.published) }}</time>
+                    </div>
+                  </div>
+                </NuxtLink>
+
+                <div v-if="hasMoreLatest" class="latest-more">
+                  <button class="btn btn-secondary btn-load-more" @click="loadMoreLatest">
+                    Load more stories
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Category sections (Top Stories view only) -->
+            <template v-if="currentCategory === 'general'">
+              <section v-for="grp in sectionGroupsPaged" :key="grp.id" class="home-zone cat-section">
+                <div class="zone-header">
+                  <div>
+                    <p class="kicker">{{ grp.label }}</p>
+                    <h2 class="section-title">{{ grp.label }}</h2>
+                  </div>
+                  <NuxtLink :to="`/?cat=${grp.id}`" class="zone-more link-accent">More in {{ grp.label }}</NuxtLink>
+                </div>
+                <div class="cat-section-grid">
+                  <NuxtLink
+                    v-for="article in grp.items"
+                    :key="article.id"
+                    :to="`/news/${article.id}`"
+                    class="list-card card-interactive"
+                    :aria-label="'Read article: ' + article.title"
+                  >
+                    <div class="list-card-media">
+                      <img :src="article.image" :alt="article.title" loading="lazy" @error="onImageError($event, article)" />
+                    </div>
+                    <div class="list-card-body">
+                      <div class="card-kicker">{{ article.category }}</div>
+                      <h3 class="list-card-title">{{ article.title }}</h3>
+                      <p class="card-excerpt">{{ truncateText(article.description, 140) }}</p>
+                      <div class="card-meta">
+                        <span class="card-author">By {{ article.author }}</span>
+                        <span class="meta-sep">·</span>
+                        <time>{{ formatDate(article.published) }}</time>
+                      </div>
+                    </div>
+                  </NuxtLink>
+                </div>
+              </section>
+            </template>
+
+            <div v-if="currentCategory === 'general' && hasMoreSections" class="latest-more">
+              <button class="btn btn-secondary btn-load-more" @click="loadMoreSections">
+                Load more sections
+              </button>
+            </div>
+          </div>
+
+          <aside class="home-sidebar">
+            <!-- Most read -->
+            <div class="sidebar-card">
+              <div class="sidebar-header">
+                <p class="sidebar-label">Most read</p>
+                <span class="badge badge-accent">Today</span>
+              </div>
+              <div class="trending-list">
+                <NuxtLink
+                  v-for="(article, index) in mostRead"
+                  :key="'trend-' + article.id"
+                  :to="`/news/${article.id}`"
+                  class="trending-card card-interactive"
+                  :aria-label="'Read article: ' + article.title"
+                >
+                  <span class="trending-rank" :class="'trending-rank-' + (index + 1)">{{ index + 1 }}</span>
+                  <div class="trending-media">
+                    <img :src="article.image" :alt="article.title" loading="lazy" @error="onImageError($event, article)" />
+                  </div>
+                  <div class="trending-body">
+                    <div class="card-kicker">{{ article.category }}</div>
+                    <h4 class="trending-title">{{ article.title }}</h4>
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Newsletter signup -->
+            <div class="sidebar-card sidebar-newsletter">
+              <p class="sidebar-label sidebar-newsletter-label">The Daily Brief</p>
+              <h4 class="sidebar-newsletter-title">Stay ahead of the story</h4>
+              <p class="sidebar-newsletter-desc">Get the day's most important reporting delivered to your inbox. No noise, just signal.</p>
+              <NewsletterSubscribe compact />
+            </div>
+
+            <!-- Popular Topics -->
+            <div class="sidebar-card">
+              <div class="sidebar-header">
+                <p class="sidebar-label">Popular topics</p>
+              </div>
+              <div class="topic-chips">
+                <NuxtLink
+                  v-for="cat in categories"
+                  :key="'topic-' + cat.id"
+                  :to="`/?cat=${cat.id}`"
+                  :class="['topic-chip', { 'topic-chip-active': currentCategory === cat.id }]"
+                >
+                  <span class="topic-emoji" aria-hidden="true">{{ cat.emoji }}</span>
+                  {{ cat.name }}
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Editor's Picks -->
+            <div v-if="editorsPicks.length" class="sidebar-card">
+              <div class="sidebar-header">
+                <p class="sidebar-label">Editor's picks</p>
+                <span class="badge badge-dark">Curated</span>
+              </div>
+              <div class="picks-list">
+                <NuxtLink
+                  v-for="article in editorsPicks"
+                  :key="'pick-' + article.id"
+                  :to="`/news/${article.id}`"
+                  class="pick-card card-interactive"
+                  :aria-label="'Read article: ' + article.title"
+                >
+                  <div class="pick-media">
+                    <img :src="article.image" :alt="article.title" loading="lazy" @error="onImageError($event, article)" />
+                  </div>
+                  <div class="pick-body">
+                    <div class="card-kicker">{{ article.category }}</div>
+                    <h5 class="pick-title">{{ article.title }}</h5>
+                    <span class="pick-time">{{ formatDate(article.published) }}</span>
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <!-- Recommended -->
+        <section v-if="recommendedArticles.length" class="home-zone home-recommended">
+          <div class="zone-header">
+            <div>
+              <p class="kicker">For you</p>
+              <h2 class="section-title">Recommended reading</h2>
+            </div>
+          </div>
+          <div class="recommended-grid">
             <NuxtLink
-              v-for="article in visibleArticles.slice(10)"
+              v-for="article in recommendedArticles"
               :key="article.id"
               :to="`/news/${article.id}`"
-              class="list-card card-interactive"
+              class="secondary-card card-interactive"
               :aria-label="'Read article: ' + article.title"
             >
-              <div class="list-card-media">
+              <div class="secondary-card-media">
                 <img :src="article.image" :alt="article.title" loading="lazy" @error="onImageError($event, article)" />
               </div>
-              <div class="list-card-body">
+              <div class="secondary-card-body">
                 <div class="card-kicker">{{ article.category }}</div>
-                <h4 class="list-card-title">{{ article.title }}</h4>
-                <p class="card-excerpt">{{ truncateText(article.description, 160) }}</p>
+                <h3 class="secondary-card-title">{{ article.title }}</h3>
+                <p class="card-excerpt">{{ truncateText(article.description, 110) }}</p>
                 <div class="card-meta">
-                  <span class="card-author">By {{ article.author }}</span>
-                  <span class="meta-sep">·</span>
-                  <time>{{ formatDate(article.published) }}</time>
+                  <span>{{ formatDate(article.published) }}</span>
                 </div>
               </div>
             </NuxtLink>
           </div>
         </section>
-
-        <!-- Sidebar: Trending + supplementary widgets -->
-        <aside class="editorial-sidebar">
-          <div class="sidebar-card">
-            <div class="sidebar-header">
-              <p class="sidebar-label">Trending now</p>
-              <span class="badge badge-accent">Updated</span>
-            </div>
-            <div class="trending-list">
-              <NuxtLink
-                v-for="(article, index) in visibleArticles.slice(4, 10)"
-                :key="'trend-' + index"
-                :to="`/news/${article.id}`"
-                class="trending-card card-interactive"
-                :aria-label="'Read article: ' + article.title"
-              >
-                <span class="trending-rank" :class="'trending-rank-' + (index + 1)">{{ index + 1 }}</span>
-                <div class="trending-media">
-                  <img :src="article.image" :alt="article.title" loading="lazy" @error="onImageError($event, article)" />
-                </div>
-                <div class="trending-body">
-                  <div class="card-kicker">{{ article.category }}</div>
-                  <h5 class="trending-title">{{ article.title }}</h5>
-                </div>
-              </NuxtLink>
-            </div>
-          </div>
-
-          <!-- Newsletter signup -->
-          <div class="sidebar-card sidebar-newsletter">
-            <p class="sidebar-label sidebar-newsletter-label">The Daily Brief</p>
-            <h4 class="sidebar-newsletter-title">Stay ahead of the story</h4>
-            <p class="sidebar-newsletter-desc">Get the day's most important reporting delivered to your inbox. No noise, just signal.</p>
-            <NewsletterSubscribe compact />
-          </div>
-
-          <!-- Popular Topics -->
-          <div class="sidebar-card">
-            <div class="sidebar-header">
-              <p class="sidebar-label">Popular topics</p>
-            </div>
-            <div class="topic-chips">
-              <button
-                v-for="cat in categories"
-                :key="'topic-' + cat.id"
-                :class="['topic-chip', { 'topic-chip-active': currentCategory === cat.id }]"
-                @click="currentCategory = cat.id"
-              >
-                <span class="topic-emoji" aria-hidden="true">{{ cat.emoji }}</span>
-                {{ cat.name }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Editor's Picks -->
-          <div v-if="editorsPicks.length" class="sidebar-card">
-            <div class="sidebar-header">
-              <p class="sidebar-label">Editor's picks</p>
-              <span class="badge badge-dark">Curated</span>
-            </div>
-            <div class="picks-list">
-              <NuxtLink
-                v-for="article in editorsPicks"
-                :key="'pick-' + article.id"
-                :to="`/news/${article.id}`"
-                class="pick-card card-interactive"
-                :aria-label="'Read article: ' + article.title"
-              >
-                <div class="pick-media">
-                  <img :src="article.image" :alt="article.title" loading="lazy" @error="onImageError($event, article)" />
-                </div>
-                <div class="pick-body">
-                  <div class="card-kicker">{{ article.category }}</div>
-                  <h5 class="pick-title">{{ article.title }}</h5>
-                  <span class="pick-time">{{ formatDate(article.published) }}</span>
-                </div>
-              </NuxtLink>
-            </div>
-          </div>
-        </aside>
       </div>
-    </div>
-
-    <!-- Empty State -->
-    <div v-else class="empty-state">
-      <div class="empty-icon">
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          <path d="M12 6v7" />
-          <path d="M9 9l3-3 3 3" />
-        </svg>
-      </div>
-      <p class="empty-title">No stories in this section yet</p>
-      <p class="empty-desc">Check back soon for the latest coverage. We're curating the most important stories for you.</p>
     </div>
   </div>
 </template>
@@ -278,7 +331,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { fallbackArticles } from '~/data/fallback-articles'
-import { truncateText, CATEGORY_GRADIENTS } from '~/utils/format'
+import { truncateText, CATEGORY_GRADIENTS, CATEGORIES, dedupeArticles } from '~/utils/format'
 import { RefreshCw } from '@lucide/vue'
 import NewsletterSubscribe from '~/components/NewsletterSubscribe.vue'
 
@@ -292,12 +345,15 @@ const loading = ref(true)
 const currentCategory = ref(route.query.cat || 'general')
 const fetchStatus = ref('')
 const fetchLoading = ref(false)
-const showAll = ref(false)
-const ARTICLES_PER_PAGE = 8
+const LATEST_PAGE_SIZE = 8
+const latestVisibleCount = ref(LATEST_PAGE_SIZE)
+const SECTION_PAGE_SIZE = 3
+const sectionVisibleCount = ref(SECTION_PAGE_SIZE)
 
 watch(() => route.query.cat, (newCat) => {
-  if (newCat) currentCategory.value = newCat
-  showAll.value = false
+  currentCategory.value = newCat || 'general'
+  latestVisibleCount.value = LATEST_PAGE_SIZE
+  sectionVisibleCount.value = SECTION_PAGE_SIZE
 })
 
 const adminEmails = computed(() => {
@@ -306,14 +362,7 @@ const adminEmails = computed(() => {
 })
 const isAdmin = computed(() => user.value?.email ? adminEmails.value.includes(user.value.email) : false)
 
-const categories = [
-  { id: 'general', name: 'World', emoji: '🌍' },
-  { id: 'technology', name: 'Tech', emoji: '💻' },
-  { id: 'sports', name: 'Sports', emoji: '⚽' },
-  { id: 'science', name: 'Science', emoji: '🔬' },
-  { id: 'business', name: 'Business', emoji: '📈' },
-  { id: 'health', name: 'Health', emoji: '🏥' }
-]
+const categories = CATEGORIES
 
 const currentCategoryLabel = computed(() => {
   const cat = categories.find(c => c.id === currentCategory.value)
@@ -324,10 +373,60 @@ const filteredArticles = computed(() => {
   return articles.value.filter(art => art.category === currentCategory.value)
 })
 
-const visibleArticles = computed(() => {
-  if (showAll.value) return filteredArticles.value
-  return filteredArticles.value.slice(0, ARTICLES_PER_PAGE)
+const viewArticles = computed(() => {
+  return currentCategory.value === 'general' ? articles.value : filteredArticles.value
 })
+
+const leadArticle = computed(() => viewArticles.value[0] || null)
+
+const featuredArticles = computed(() => viewArticles.value.slice(1, 4))
+
+const latestArticles = computed(() => {
+  return [...viewArticles.value].sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime())
+})
+
+const latestArticlesPaged = computed(() => {
+  return latestArticles.value.slice(0, latestVisibleCount.value)
+})
+
+const hasMoreLatest = computed(() => {
+  return latestVisibleCount.value < latestArticles.value.length
+})
+
+const loadMoreLatest = () => {
+  if (hasMoreLatest.value) latestVisibleCount.value += LATEST_PAGE_SIZE
+}
+
+const mostRead = computed(() => viewArticles.value.slice(0, 6))
+
+const recommendedArticles = computed(() => {
+  const exclude = new Set([
+    leadArticle.value?.id,
+    ...featuredArticles.value.map(a => a.id)
+  ].filter(Boolean))
+  return viewArticles.value.filter(a => !exclude.has(a.id)).slice(0, 3)
+})
+
+const sectionGroups = computed(() => {
+  const order = ['general', 'technology', 'sports', 'science', 'business', 'health']
+  return order.map(cat => {
+    const meta = categories.find(c => c.id === cat)
+    const items = articles.value.filter(a => a.category === cat).slice(0, 4)
+    return { id: cat, label: meta?.name || cat, items }
+  }).filter(g => g.items.length)
+})
+
+const sectionGroupsPaged = computed(() => {
+  return sectionGroups.value.slice(0, sectionVisibleCount.value)
+})
+
+const hasMoreSections = computed(() => {
+  return sectionVisibleCount.value < sectionGroups.value.length
+})
+
+const loadMoreSections = () => {
+  if (hasMoreSections.value) sectionVisibleCount.value += SECTION_PAGE_SIZE
+}
 
 const editorsPicks = computed(() => {
   const topIds = new Set(filteredArticles.value.slice(0, 10).map(a => a.id))
@@ -367,9 +466,9 @@ const fetchArticles = async (showLoading = true) => {
       .select('*')
       .order('published', { ascending: false })
     if (!error && data?.length) {
-      articles.value = data
+      articles.value = dedupeArticles(data)
     } else {
-      articles.value = fallbackArticles
+      articles.value = dedupeArticles(fallbackArticles)
     }
   } catch (err) {
     console.warn('Supabase feed unavailable, using fallback articles.', err)
@@ -414,55 +513,16 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .home-page {
-  padding: 2rem 0 0;
+  padding: 1.5rem 0 0;
 }
 
-/* ===== Hero Section ===== */
-.hero-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-  padding: 2.5rem 2.5rem;
-  margin-bottom: 2rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2xl);
-  background: linear-gradient(135deg, var(--color-bg-alt) 0%, var(--color-bg) 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-section::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 50%;
-  height: 200%;
-  background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.04) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.hero-content {
-  flex: 1;
-  min-width: 0;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-eyebrow {
+/* ===== Masthead strip ===== */
+.home-masthead {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 0.75rem;
+  padding: 0 0 1rem;
   flex-wrap: wrap;
-}
-
-.hero-date {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  letter-spacing: 0.02em;
 }
 
 .live-indicator {
@@ -489,82 +549,32 @@ onBeforeUnmount(() => {
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
-.hero-title {
-  margin: 0.6rem 0 0.9rem;
-  font-size: clamp(1.875rem, 3.5vw, 2.75rem);
-  line-height: 1.1;
-  max-width: 680px;
-  font-family: 'Playfair Display', Georgia, serif;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.hero-title-accent {
-  display: block;
-  color: var(--color-accent);
-}
-
-.hero-subtitle {
-  font-size: 1.0625rem;
-  line-height: 1.7;
-  color: var(--color-text-secondary);
-  max-width: 540px;
-}
-
-.hero-stats {
-  display: flex;
-  gap: 0.75rem;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.85rem 1.25rem;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  background: var(--color-card-bg);
-  box-shadow: var(--shadow-xs);
-}
-
-.hero-stat-value {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-text);
-  line-height: 1;
-}
-
-.hero-stat-label {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.home-date {
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--color-text-muted);
+  letter-spacing: 0.02em;
 }
 
-/* ===== Category Bar ===== */
-.category-bar {
+/* ===== Section bar (top) ===== */
+.home-section-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0 0 1.25rem;
+  padding: 0 0 1rem;
   margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--color-border);
   flex-wrap: wrap;
 }
 
-.category-pills {
+.home-section-pills {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
 }
 
-.cat-pill {
+.home-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -577,162 +587,152 @@ onBeforeUnmount(() => {
   font-weight: 700;
   cursor: pointer;
   box-shadow: var(--shadow-xs);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   font-family: inherit;
+  text-decoration: none;
 }
 
-.cat-pill:hover {
+.home-pill:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
   background: var(--color-accent-subtle);
 }
 
-.cat-pill-active {
+.home-pill-active {
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-accent-contrast);
   border-color: var(--color-accent);
   box-shadow: var(--shadow-accent);
 }
 
-.cat-pill-active:hover {
-  background: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
-  color: #fff;
-}
-
-.cat-emoji {
+.home-pill-emoji {
   font-size: 0.85rem;
   line-height: 1;
 }
 
-.category-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.fetch-btn {
+.home-top-stories {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-}
-
-.fetch-icon {
-  width: 14px;
-  height: 14px;
-  stroke-width: 2.2;
-}
-
-.fetch-status {
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.status-error { color: var(--color-error); }
-.status-success { color: var(--color-success); }
-
-.spin-icon {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* ===== Section Header ===== */
-.section-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.85rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.section-eyebrow {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  margin-bottom: 0.35rem;
-}
-
-.section-title {
-  font-weight: 800;
-  font-size: clamp(1.15rem, 2.5vw, 1.65rem);
-}
-
-.view-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 9999px;
+  border: 1.5px solid var(--color-secondary);
+  background: var(--color-secondary);
+  color: var(--color-secondary-contrast);
   font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.view-toggle-icon {
-  transition: transform 0.3s ease;
+.home-top-stories:hover {
+  background: var(--color-secondary-hover);
+  border-color: var(--color-secondary-hover);
 }
 
-.view-toggle-icon.rotated {
-  transform: rotate(180deg);
+.home-top-stories-active {
+  box-shadow: var(--shadow-sm);
 }
 
-/* ===== Editorial Grid ===== */
-.editorial-grid {
+.home-top-stories-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--color-highlight);
+}
+
+/* ===== Front page layout ===== */
+.home-lead-row {
   display: grid;
-  grid-template-columns: 1.75fr 1fr;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.home-featured {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.home-body-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
   gap: 1.75rem;
   align-items: start;
 }
 
-.editorial-main {
+.home-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-width: 0;
+}
+
+.home-sidebar {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  position: sticky;
+  top: 140px;
 }
 
-.secondary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+.home-zone {
+  scroll-margin-top: 100px;
 }
 
-.more-stories {
-  margin-top: 0.75rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--color-border);
+.zone-header {
   display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
-/* ===== Hero Card ===== */
+.zone-header .kicker {
+  margin-bottom: 0.35rem;
+}
+
+.zone-more {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.zone-more:hover {
+  text-decoration: underline;
+}
+
+/* ===== Lead hero card ===== */
 .hero-card {
   cursor: pointer;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-card-bg);
   box-shadow: var(--shadow-md);
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   text-decoration: none;
   color: inherit;
+  height: 100%;
 }
 
 .hero-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--color-accent-light);
+  border-color: var(--color-border-strong);
 }
 
 .hero-card-media {
   position: relative;
-  height: 400px;
+  height: 380px;
   overflow: hidden;
   background: var(--color-bg-alt);
 }
@@ -741,17 +741,17 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s ease;
 }
 
 .hero-card:hover .hero-card-media img {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
 .hero-card-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 55%);
+  background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 55%);
   pointer-events: none;
 }
 
@@ -763,7 +763,6 @@ onBeforeUnmount(() => {
   padding: 0.35rem 0.8rem;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
   color: var(--color-text);
   font-size: 0.6875rem;
   font-weight: 800;
@@ -773,22 +772,24 @@ onBeforeUnmount(() => {
 
 .hero-card-body {
   padding: 1.5rem 1.75rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .hero-card-title {
-  font-size: 1.5rem;
-  font-family: 'Playfair Display', Georgia, serif;
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: clamp(1.5rem, 2.6vw, 2.125rem);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  line-height: 1.18;
   color: var(--color-text);
-  margin-bottom: 0.5rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* ===== Secondary Card ===== */
+/* ===== Secondary card ===== */
 .secondary-card {
   height: 100%;
   cursor: pointer;
@@ -799,19 +800,19 @@ onBeforeUnmount(() => {
   border: 1px solid var(--color-border);
   background: var(--color-card-bg);
   box-shadow: var(--shadow-base);
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   text-decoration: none;
   color: inherit;
 }
 
 .secondary-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--color-accent-light);
+  border-color: var(--color-border-strong);
 }
 
 .secondary-card-media {
-  height: 160px;
+  height: 150px;
   overflow: hidden;
   background: var(--color-bg-alt);
 }
@@ -820,11 +821,11 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s ease;
 }
 
 .secondary-card:hover .secondary-card-media img {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
 .secondary-card-body {
@@ -837,16 +838,17 @@ onBeforeUnmount(() => {
 
 .secondary-card-title {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.35;
+  font-family: var(--font-serif);
   color: var(--color-text);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* ===== List Card ===== */
+/* ===== List card ===== */
 .list-card {
   cursor: pointer;
   display: grid;
@@ -858,15 +860,15 @@ onBeforeUnmount(() => {
   border: 1px solid var(--color-border);
   background: var(--color-card-bg);
   box-shadow: var(--shadow-base);
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   text-decoration: none;
   color: inherit;
 }
 
 .list-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  border-color: var(--color-accent-light);
+  border-color: var(--color-border-strong);
 }
 
 .list-card-media {
@@ -879,7 +881,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s ease;
 }
 
 .list-card:hover .list-card-media img {
@@ -895,13 +897,37 @@ onBeforeUnmount(() => {
 
 .list-card-title {
   font-size: 1.0625rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.35;
+  font-family: var(--font-serif);
   color: var(--color-text);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.latest-river {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.latest-more {
+  display: flex;
+  justify-content: center;
+  padding: 1.25rem 0 0.5rem;
+}
+
+.btn-load-more {
+  min-width: 220px;
+  font-weight: 700;
+}
+
+.cat-section-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
 }
 
 /* ===== Card Typography ===== */
@@ -949,11 +975,9 @@ onBeforeUnmount(() => {
   color: var(--color-border);
 }
 
-/* ===== Trending Sidebar ===== */
+/* ===== Sidebar ===== */
 .sidebar-card {
-  position: sticky;
-  top: 88px;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-card-bg);
   padding: 1.5rem;
@@ -1018,14 +1042,14 @@ onBeforeUnmount(() => {
 
 .trending-rank-1 {
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-accent-contrast);
   border-color: var(--color-accent);
 }
 
 .trending-media {
   width: 3.5rem;
   height: 2.75rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--color-bg-alt);
   flex-shrink: 0;
@@ -1047,7 +1071,7 @@ onBeforeUnmount(() => {
 
 .trending-title {
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.35;
   color: var(--color-text);
   display: -webkit-box;
@@ -1056,9 +1080,8 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-/* ===== Sidebar supplementary widgets ===== */
 .sidebar-newsletter {
-  background: linear-gradient(150deg, var(--color-accent-subtle) 0%, var(--color-card-bg) 70%);
+  background: var(--color-accent-subtle);
   border-color: var(--color-accent-light);
 }
 
@@ -1067,9 +1090,9 @@ onBeforeUnmount(() => {
 }
 
 .sidebar-newsletter-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-text);
   margin: 0.35rem 0 0.4rem;
   line-height: 1.2;
@@ -1117,7 +1140,8 @@ onBeforeUnmount(() => {
   font-family: inherit;
   cursor: pointer;
   box-shadow: var(--shadow-xs);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
+  text-decoration: none;
 }
 
 .topic-chip:hover {
@@ -1131,12 +1155,6 @@ onBeforeUnmount(() => {
   color: var(--color-secondary-contrast);
   border-color: var(--color-secondary);
   box-shadow: var(--shadow-sm);
-}
-
-.topic-chip-active:hover {
-  background: var(--color-secondary-hover);
-  border-color: var(--color-secondary-hover);
-  color: var(--color-secondary-contrast);
 }
 
 .topic-emoji {
@@ -1173,7 +1191,7 @@ onBeforeUnmount(() => {
 .pick-media {
   width: 4.5rem;
   height: 4.5rem;
-  border-radius: 0.6rem;
+  border-radius: var(--radius-base);
   overflow: hidden;
   background: var(--color-bg-alt);
   flex-shrink: 0;
@@ -1194,7 +1212,7 @@ onBeforeUnmount(() => {
 
 .pick-title {
   font-size: 0.875rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.35;
   color: var(--color-text);
   display: -webkit-box;
@@ -1209,23 +1227,33 @@ onBeforeUnmount(() => {
   color: var(--color-text-muted);
 }
 
+/* ===== Recommended ===== */
+.recommended-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
 /* ===== Empty State ===== */
 .empty-state {
   text-align: center;
-  padding: 6rem 1rem;
+  padding: 5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .empty-icon {
   color: var(--color-text-muted);
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.25rem;
   opacity: 0.5;
 }
 
 .empty-title {
   font-size: 1.125rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-text);
-  margin-bottom: 0.5rem;
 }
 
 .empty-desc {
@@ -1341,16 +1369,16 @@ onBeforeUnmount(() => {
 
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
-  .editorial-grid {
+  .home-lead-row {
     grid-template-columns: 1fr;
   }
 
-  .sidebar-card {
-    position: static;
+  .home-body-grid {
+    grid-template-columns: 1fr;
   }
 
-  .secondary-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .home-sidebar {
+    position: static;
   }
 
   .skeleton-grid {
@@ -1363,35 +1391,19 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
-  .hero-section {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 1.75rem 1.5rem;
-    gap: 1.25rem;
-  }
-
-  .hero-stats {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .hero-title {
-    font-size: 1.625rem;
-  }
-
   .hero-card-media {
-    height: 280px;
-  }
-
-  .hero-card-body {
-    padding: 1.15rem 1.25rem 1.35rem;
+    height: 260px;
   }
 
   .hero-card-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
 
-  .secondary-grid {
+  .cat-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommended-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1414,13 +1426,8 @@ onBeforeUnmount(() => {
     padding: 1rem 0 0;
   }
 
-  .hero-section {
-    padding: 1.25rem;
-    border-radius: var(--radius-xl);
-  }
-
-  .hero-title {
-    font-size: 1.375rem;
+  .home-section-bar {
+    gap: 0.75rem;
   }
 
   .list-card {
@@ -1435,7 +1442,7 @@ onBeforeUnmount(() => {
     padding: 0 0.75rem 0.75rem;
   }
 
-  .section-header {
+  .zone-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.6rem;
