@@ -6,7 +6,7 @@
       </div>
       <div>
         <h3 class="newsletter-title">Newsletter</h3>
-        <p class="newsletter-subtitle">Get the latest briefs in your inbox.</p>
+        <p class="newsletter-subtitle">Subscribe to get the latest briefs in your inbox.</p>
       </div>
     </div>
     <form @submit.prevent="handleSubscribe" class="newsletter-form">
@@ -17,18 +17,17 @@
         placeholder="your@email.com"
         aria-label="Email address"
         class="form-input"
+        :class="{ 'form-input-error': emailTouched && !validEmail }"
+        @blur="emailTouched = true"
       />
-      <button type="submit" :disabled="subscribing" class="btn btn-primary btn-sm">
-        {{ subscribing ? '...' : 'Subscribe' }}
+      <button type="submit" :disabled="!validEmail" class="btn btn-primary btn-sm">
+        Subscribe
       </button>
     </form>
-    <p v-if="message" class="newsletter-message" :class="messageType === 'error' ? 'form-error' : 'form-success'">
-      {{ message }}
+    <p v-if="emailTouched && !validEmail" class="newsletter-error">
+      Please enter a valid email address.
     </p>
-    <p v-if="showUnsubscribeLink" class="newsletter-unsub">
-      Already subscribed?
-      <NuxtLink to="/unsubscribe" class="link-accent">Unsubscribe here</NuxtLink>
-    </p>
+    <p class="newsletter-note">You'll be taken to secure checkout to complete your subscription.</p>
   </div>
 </template>
 
@@ -37,41 +36,15 @@ import { ref, computed } from 'vue'
 import { Mail } from '@lucide/vue'
 
 const email = ref('')
-const subscribing = ref(false)
-const message = ref('')
-const messageType = ref('')
+const emailTouched = ref(false)
 
-const showUnsubscribeLink = computed(() => {
-  return message.value.includes('already subscribed') || message.value.includes('Welcome back')
-})
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const validEmail = computed(() => emailRegex.test(email.value.trim()))
 
-const handleSubscribe = async () => {
-  if (!email.value.trim()) return
-  subscribing.value = true
-  message.value = ''
-  messageType.value = ''
-  try {
-    const res = await fetch('/api/newsletter-subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value.trim() })
-    })
-    const data = await res.json()
-    if (data.success) {
-      message.value = data.message
-      messageType.value = 'success'
-      if (!data.message.includes('already') && !data.message.includes('Welcome back')) {
-        email.value = ''
-      }
-    } else {
-      message.value = data.error || 'Something went wrong. Try again later.'
-      messageType.value = 'error'
-    }
-  } catch (e) {
-    message.value = 'Something went wrong. Try again later.'
-    messageType.value = 'error'
-  }
-  subscribing.value = false
+const handleSubscribe = () => {
+  emailTouched.value = true
+  if (!validEmail.value) return
+  navigateTo(`/checkout?email=${encodeURIComponent(email.value.trim())}`)
 }
 </script>
 
@@ -128,21 +101,19 @@ const handleSubscribe = async () => {
   gap: 0.5rem;
 }
 
-.newsletter-message {
-  margin-top: 0.85rem;
-  font-size: 0.8125rem;
-  font-weight: 700;
+.form-input-error {
+  border-color: var(--color-error);
 }
 
-.newsletter-unsub {
-  margin-top: 0.85rem;
+.newsletter-error {
+  margin-top: 0.6rem;
+  font-size: 0.8125rem;
+  color: var(--color-error);
+}
+
+.newsletter-note {
+  margin-top: 0.7rem;
   font-size: 0.75rem;
   color: var(--color-text-muted);
-  text-align: center;
-}
-
-.link-accent {
-  color: var(--color-accent);
-  font-weight: 700;
 }
 </style>

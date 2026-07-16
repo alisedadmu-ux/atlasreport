@@ -21,13 +21,16 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode'
   ],
   runtimeConfig: {
+    stripeSecretKey: process.env.stripe_secret_key,
     public: {
       supabase: {
         url: process.env.NUXT_PUBLIC_SUPABASE_URL,
         key: process.env.NUXT_PUBLIC_SUPABASE_KEY,
         redirect: false
       },
-      adminEmail: process.env.NUXT_ADMIN_EMAIL || 'alisedadmu@gmail.com'
+      adminEmail: process.env.NUXT_ADMIN_EMAIL || 'alisedadmu@gmail.com',
+      stripePublishableKey: process.env.stripe_publishable_key || '',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || ''
     }
   },
   colorMode: {

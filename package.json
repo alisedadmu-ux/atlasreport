@@ -16,10 +16,12 @@
     "@lucide/vue": "^1.24.0",
     "@nuxtjs/color-mode": "^4.0.1",
     "@nuxtjs/supabase": "^2.0.9",
+    "@stripe/stripe-js": "^5.10.0",
     "autoprefixer": "^10.5.0",
     "nuxt": "^4.4.6",
     "rss-parser": "^3.13.0",
     "sharp": "^0.35.3",
+    "stripe": "^17.7.0",
     "vue": "^3.5.34",
     "vue-router": "^5.0.7"
   },

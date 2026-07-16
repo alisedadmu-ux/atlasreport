@@ -1,6 +1,11 @@
 <template>
   <div class="home-page">
     <div class="site-container">
+      <div v-if="thankYou" class="home-thanks" role="status">
+        <Check class="home-thanks-icon" />
+        <span>{{ thankYou }}</span>
+      </div>
+
       <!-- Masthead strip -->
       <div class="home-masthead">
         <span class="live-indicator" aria-label="Live updates">
@@ -332,13 +337,19 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { fallbackArticles } from '~/data/fallback-articles'
 import { truncateText, CATEGORY_GRADIENTS, CATEGORIES, dedupeArticles } from '~/utils/format'
-import { RefreshCw } from '@lucide/vue'
+import { RefreshCw, Check } from '@lucide/vue'
 import NewsletterSubscribe from '~/components/NewsletterSubscribe.vue'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const route = useRoute()
 const config = useRuntimeConfig()
+
+const thankYou = computed(() => {
+  if (route.query.subscribed === 'success') return 'You\'re subscribed — welcome to Atlas Report Premium!'
+  if (route.query.donated === 'success') return 'Thank you for your donation — it means the world to us!'
+  return ''
+})
 
 const articles = ref([])
 const loading = ref(true)
@@ -554,6 +565,26 @@ onBeforeUnmount(() => {
   font-weight: 600;
   color: var(--color-text-muted);
   letter-spacing: 0.02em;
+}
+
+.home-thanks {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--color-success-border);
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.home-thanks-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
 }
 
 /* ===== Section bar (top) ===== */

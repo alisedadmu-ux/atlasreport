@@ -118,6 +118,7 @@ const navLinks = [
   { to: '/search', label: 'Search' },
   { to: '/archives', label: 'Archives' },
   { to: '/community', label: 'Community' },
+  { to: '/checkout', label: 'Subscribe' },
   { to: '/about', label: 'About' }
 ]
 

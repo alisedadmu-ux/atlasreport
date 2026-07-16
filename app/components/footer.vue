@@ -41,6 +41,14 @@
           <h4 class="footer-heading">Stay informed</h4>
           <NewsletterSubscribe />
         </div>
+
+        <div class="footer-col footer-donate">
+          <h4 class="footer-heading">Support us</h4>
+          <p class="footer-donate-desc">Fund independent, verified reporting.</p>
+          <NuxtLink to="/donate" class="footer-donate-btn">
+            Make a donation
+          </NuxtLink>
+        </div>
       </div>
 
       <div class="footer-bottom">
@@ -86,7 +94,7 @@ const account = [
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1.5fr repeat(4, minmax(0, 1fr));
   gap: 2.5rem;
   padding-bottom: 2.5rem;
   border-bottom: 1px solid var(--color-border);
@@ -231,6 +239,35 @@ const account = [
 .footer-legal-dot {
   color: var(--color-border);
   font-size: 0.75rem;
+}
+
+.footer-donate-desc {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin: 0 0 0.85rem;
+}
+
+.footer-donate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-weight: 800;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: background 0.15s, transform 0.05s;
+}
+
+.footer-donate-btn:hover {
+  background: var(--color-accent-hover);
+}
+
+.footer-donate-btn:active {
+  transform: translateY(1px);
 }
 
 @media (max-width: 1024px) {
